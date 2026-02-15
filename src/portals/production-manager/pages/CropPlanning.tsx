@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Sprout, Plus, AlertTriangle, ChevronRight, BarChart2 } from 'lucide-react';
 import CreateCropCycleDrawer from '../components/CreateCropCycleDrawer';
-import BudgetLedgerDrawer from '../components/BudgetLedgerDrawer';
+import CropCycleDetailDrawer from '../components/CropCycleDetailDrawer';
 
 const CropPlanning = () => {
     const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
-    const [isLedgerDrawerOpen, setIsLedgerDrawerOpen] = useState(false);
     const [selectedCycle, setSelectedCycle] = useState<any>(null);
 
     // Mock Data for "Priority Zone" Alert
@@ -48,9 +47,8 @@ const CropPlanning = () => {
         }
     ];
 
-    const handleOpenLedger = (cycle: any) => {
+    const handleManageCycle = (cycle: any) => {
         setSelectedCycle(cycle);
-        setIsLedgerDrawerOpen(true);
     };
 
     const calculateProgress = (spent: number, total: number) => {
@@ -197,10 +195,10 @@ const CropPlanning = () => {
 
                                 {/* Footer Action */}
                                 <button
-                                    onClick={() => handleOpenLedger(cycle)}
+                                    onClick={() => handleManageCycle(cycle)}
                                     className="w-full py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50 transition-colors"
                                 >
-                                    View Ledger <ChevronRight size={16} />
+                                    Manage Cycle <ChevronRight size={16} />
                                 </button>
 
                             </div>
@@ -220,10 +218,10 @@ const CropPlanning = () => {
                 }}
             />
 
-            <BudgetLedgerDrawer
-                isOpen={isLedgerDrawerOpen}
-                onClose={() => setIsLedgerDrawerOpen(false)}
-                data={selectedCycle}
+            <CropCycleDetailDrawer
+                isOpen={!!selectedCycle}
+                onClose={() => setSelectedCycle(null)}
+                cycle={selectedCycle}
             />
 
         </div>

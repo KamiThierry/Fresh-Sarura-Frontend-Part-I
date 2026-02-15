@@ -2,8 +2,9 @@ import { useState } from 'react';
 import {
     Plane, Truck, Scale, Thermometer, FileText,
     Search, Filter, Download, Plus, MoreHorizontal,
-    CheckCircle2, AlertTriangle, Clock, Map
+    CheckCircle2, AlertTriangle, Clock, Map, TrendingUp
 } from 'lucide-react';
+import SupplyOutlook from '../components/SupplyOutlook';
 
 interface LogisticsProps {
     onCreatePackingList: () => void;
@@ -172,6 +173,7 @@ const Logistics = ({ onCreatePackingList }: LogisticsProps) => {
                     {[
                         { id: 'shipments', label: 'Airport Shipments' },
                         { id: 'collection', label: 'Collection Routes' },
+                        { id: 'supply', label: 'Supply Forecasts' },
                         { id: 'docs', label: 'Documentation' }
                     ].map((tab) => (
                         <button
@@ -311,7 +313,12 @@ const Logistics = ({ onCreatePackingList }: LogisticsProps) => {
                     </div>
                 )}
 
-                {/* TAB 3: DOCUMENTATION */}
+                {/* TAB 3: SUPPLY OUTLOOK */}
+                {activeTab === 'supply' && (
+                    <SupplyOutlook />
+                )}
+
+                {/* TAB 4: DOCUMENTATION */}
                 {activeTab === 'docs' && (
                     <div className="space-y-4">
                         {docs.map((doc) => (

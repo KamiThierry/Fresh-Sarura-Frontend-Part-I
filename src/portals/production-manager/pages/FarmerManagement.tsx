@@ -141,8 +141,8 @@ const FarmerManagement = () => {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${farmer.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' :
-                      farmer.status === 'Inactive' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
-                        'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300'
+                    farmer.status === 'Inactive' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
+                      'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300'
                     }`}>
                     {farmer.status}
                   </span>

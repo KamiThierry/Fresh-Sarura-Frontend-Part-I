@@ -367,9 +367,9 @@ const InventoryManagement = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${item.type === 'Intake Logged' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                                                        item.type === 'QC Inspection' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                                            item.type === 'Stock Adjustment' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
-                                                                'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                                    item.type === 'QC Inspection' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                                        item.type === 'Stock Adjustment' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
+                                                            'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                                                     }`}>
                                                     {item.type}
                                                 </span>
@@ -378,8 +378,8 @@ const InventoryManagement = () => {
                                                 {item.description}
                                             </td>
                                             <td className={`px-6 py-4 text-sm font-bold ${item.impactType === 'positive'
-                                                    ? 'text-green-600 dark:text-green-400'
-                                                    : 'text-red-500 dark:text-red-400'
+                                                ? 'text-green-600 dark:text-green-400'
+                                                : 'text-red-500 dark:text-red-400'
                                                 }`}>
                                                 {item.impact}
                                             </td>
