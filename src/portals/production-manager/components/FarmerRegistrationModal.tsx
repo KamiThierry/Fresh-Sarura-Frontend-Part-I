@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Upload, User, MapPin } from 'lucide-react';
 
-interface FarmerRegistrationDrawerProps {
+interface FarmerRegistrationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onFarmerAdded: () => void;
 }
 
-const FarmerRegistrationDrawer = ({ isOpen, onClose, onFarmerAdded }: FarmerRegistrationDrawerProps) => {
+const FarmerRegistrationModal = ({ isOpen, onClose, onFarmerAdded }: FarmerRegistrationModalProps) => {
     if (!isOpen) return null;
 
     const [formData, setFormData] = useState({
@@ -57,26 +58,26 @@ const FarmerRegistrationDrawer = ({ isOpen, onClose, onFarmerAdded }: FarmerRegi
         }, 1000);
     }
 
-    return (
-        <div className="fixed top-16 left-0 right-0 bottom-0 z-50 flex justify-end">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
-            ></div>
+            />
 
-            {/* Drawer */}
-            <div className="absolute inset-y-0 right-0 w-full max-w-md h-full bg-white dark:bg-gray-800 shadow-2xl flex flex-col animate-slide-in-right">
+            {/* Modal Container */}
+            <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Register New Farmer</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Add a new supplier to the network</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-white dark:hover:bg-gray-700 transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -278,8 +279,9 @@ const FarmerRegistrationDrawer = ({ isOpen, onClose, onFarmerAdded }: FarmerRegi
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
-export default FarmerRegistrationDrawer;
+export default FarmerRegistrationModal;

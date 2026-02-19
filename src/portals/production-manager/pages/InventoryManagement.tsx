@@ -4,15 +4,15 @@ import {
     Package, DollarSign, Layers,
     Leaf, ArrowRight, Printer
 } from 'lucide-react';
-import LogIntakeForm from '../components/LogIntakeForm';
-import QCSortingDrawer from '../components/QCSortingDrawer';
-import CreateExportBatchDrawer from '../components/CreateExportBatchDrawer';
+import LogIntakeModal from '../components/LogIntakeModal';
+import QCSortingModal from '../components/QCSortingModal';
+import CreateExportBatchModal from '../components/CreateExportBatchModal';
 
 const InventoryManagement = () => {
     // Tab State: 'intake' | 'inventory' | 'export'
     const [activeTab, setActiveTab] = useState('active_inventory');
 
-    // Drawer States
+    // Modal States
     const [isIntakeOpen, setIsIntakeOpen] = useState(false);
     const [isQCOpen, setIsQCOpen] = useState(false);
     const [isExportBatchOpen, setIsExportBatchOpen] = useState(false);
@@ -397,15 +397,15 @@ const InventoryManagement = () => {
 
             {/* --- DRAWERS --- */}
 
-            {/* Drawer 1: Log Intake */}
-            <LogIntakeForm
+            {/* Modal 1: Log Intake */}
+            <LogIntakeModal
                 isOpen={isIntakeOpen}
                 onClose={() => setIsIntakeOpen(false)}
                 onSubmit={() => setIsIntakeOpen(false)}
             />
 
-            {/* Drawer 2: QC & Sorting */}
-            <QCSortingDrawer
+            {/* Modal 2: QC & Sorting */}
+            <QCSortingModal
                 isOpen={isQCOpen}
                 onClose={() => setIsQCOpen(false)}
                 intakeId={selectedIntakeId}
@@ -415,8 +415,8 @@ const InventoryManagement = () => {
                 }}
             />
 
-            {/* Drawer 3: Create Export Batch */}
-            <CreateExportBatchDrawer
+            {/* Modal 3: Create Export Batch */}
+            <CreateExportBatchModal
                 isOpen={isExportBatchOpen}
                 onClose={() => setIsExportBatchOpen(false)}
                 onSuccess={() => {

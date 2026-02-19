@@ -1,9 +1,11 @@
+import { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, TrendingDown, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 
-interface BudgetLedgerDrawerProps {
+interface BudgetLedgerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    data: {
+    data?: {
         farmName: string;
         season: string;
         crop: string;
@@ -15,7 +17,7 @@ interface BudgetLedgerDrawerProps {
     } | null;
 }
 
-const BudgetLedgerDrawer = ({ isOpen, onClose, data: _data }: BudgetLedgerDrawerProps) => { // 'data' prop reserved for future integration
+const BudgetLedgerModal = ({ isOpen, onClose, data: _data }: BudgetLedgerModalProps) => { // 'data' prop reserved for future integration
     if (!isOpen) return null;
 
     // Mock Data for the specific view
@@ -34,19 +36,19 @@ const BudgetLedgerDrawer = ({ isOpen, onClose, data: _data }: BudgetLedgerDrawer
         ]
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex justify-end">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
-            {/* Drawer */}
-            <div className="relative w-full max-w-xl bg-white dark:bg-gray-800 h-full shadow-2xl overflow-y-auto flex flex-col animate-slide-in-right">
+            {/* Modal */}
+            <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm z-10">
+                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start bg-white dark:bg-gray-800">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -66,7 +68,7 @@ const BudgetLedgerDrawer = ({ isOpen, onClose, data: _data }: BudgetLedgerDrawer
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-8">
+                <div className="p-6 space-y-8 overflow-y-auto">
 
                     {/* Variance Summary Table */}
                     <section>
@@ -147,8 +149,9 @@ const BudgetLedgerDrawer = ({ isOpen, onClose, data: _data }: BudgetLedgerDrawer
 
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
-export default BudgetLedgerDrawer;
+export default BudgetLedgerModal;

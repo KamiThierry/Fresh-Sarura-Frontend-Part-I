@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plane, Package, Plus, Trash2, ArrowRight } from 'lucide-react';
 
-interface CreateExportBatchDrawerProps {
+interface CreateExportBatchModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (batchData: any) => void;
 }
 
-const CreateExportBatchDrawer = ({ isOpen, onClose, onSuccess }: CreateExportBatchDrawerProps) => {
+const CreateExportBatchModal = ({ isOpen, onClose, onSuccess }: CreateExportBatchModalProps) => {
     if (!isOpen) return null;
 
     const [formData, setFormData] = useState({
@@ -56,16 +57,16 @@ const CreateExportBatchDrawer = ({ isOpen, onClose, onSuccess }: CreateExportBat
 
     const totalAllocated = selectedStock.reduce((sum, item) => sum + (parseFloat(item.allocateAmount) || 0), 0);
 
-    return (
-        <div className="fixed top-16 left-0 right-0 bottom-0 z-50 flex justify-end">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             ></div>
 
-            {/* Drawer */}
-            <div className="absolute inset-y-0 right-0 w-full max-w-xl h-full bg-white dark:bg-gray-800 shadow-2xl flex flex-col animate-slide-in-right">
+            {/* Modal */}
+            <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-purple-50/50 dark:bg-purple-900/10">
@@ -227,8 +228,9 @@ const CreateExportBatchDrawer = ({ isOpen, onClose, onSuccess }: CreateExportBat
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
-export default CreateExportBatchDrawer;
+export default CreateExportBatchModal;

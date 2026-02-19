@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calculator, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-interface CreateCropCycleDrawerProps {
+interface CreateCropCycleModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: any) => void;
 }
 
-const CreateCropCycleDrawer = ({ isOpen, onClose, onSubmit }: CreateCropCycleDrawerProps) => {
+const CreateCropCycleModal = ({ isOpen, onClose, onSubmit }: CreateCropCycleModalProps) => {
     const [formData, setFormData] = useState({
         farmName: '',
         cropName: '',
@@ -46,18 +47,18 @@ const CreateCropCycleDrawer = ({ isOpen, onClose, onSubmit }: CreateCropCycleDra
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex justify-end">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
-            {/* Drawer */}
-            <div className="relative w-full max-w-md bg-white dark:bg-gray-800 h-full shadow-2xl overflow-y-auto flex flex-col animate-slide-in-right">
+            {/* Modal */}
+            <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm z-10">
+                <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">New Crop Cycle</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Establish budget & limits</p>
@@ -71,7 +72,7 @@ const CreateCropCycleDrawer = ({ isOpen, onClose, onSubmit }: CreateCropCycleDra
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-8 flex-1">
+                <div className="p-6 space-y-8 flex-1 overflow-y-auto">
 
                     {/* Section 1: Context */}
                     <section className="space-y-4">
@@ -141,7 +142,7 @@ const CreateCropCycleDrawer = ({ isOpen, onClose, onSubmit }: CreateCropCycleDra
                     </section>
 
                     {/* Sticky Calculator for Mobile */}
-                    <div className={`sticky top-20 z-20 transition-transform duration-300 ${remaining < 0 ? 'scale-105' : 'scale-100'}`}>
+                    <div className={`sticky top-0 z-20 transition-transform duration-300 ${remaining < 0 ? 'scale-105' : 'scale-100'}`}>
                         <div className={`p-4 rounded-xl shadow-lg border ${remaining < 0
                             ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
                             : remaining === 0 && formData.totalBudget > 0
@@ -221,8 +222,9 @@ const CreateCropCycleDrawer = ({ isOpen, onClose, onSubmit }: CreateCropCycleDra
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
-export default CreateCropCycleDrawer;
+export default CreateCropCycleModal;

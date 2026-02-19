@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { X, FileText, Download, Upload, Eye, CheckCircle, AlertTriangle, Clock, Plane, Package, Calendar } from 'lucide-react';
 
@@ -44,8 +45,8 @@ const ShipmentDetailsModal = ({ isOpen, onClose, shipment }: ShipmentDetailsModa
         { time: 'Yesterday, 10:15', event: 'Shipment created', icon: <Clock size={14} /> },
     ];
 
-    return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
@@ -270,7 +271,8 @@ const ShipmentDetailsModal = ({ isOpen, onClose, shipment }: ShipmentDetailsModa
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

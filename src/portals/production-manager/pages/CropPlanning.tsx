@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Sprout, Plus, AlertTriangle, ChevronRight, BarChart2 } from 'lucide-react';
-import CreateCropCycleDrawer from '../components/CreateCropCycleDrawer';
-import CropCycleDetailDrawer from '../components/CropCycleDetailDrawer';
+import CreateCropCycleModal from '../components/CreateCropCycleModal';
+import CropCycleDetailModal from '../components/CropCycleDetailModal';
 
 const CropPlanning = () => {
-    const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedCycle, setSelectedCycle] = useState<any>(null);
 
     // Mock Data for "Priority Zone" Alert
@@ -66,7 +66,7 @@ const CropPlanning = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Allocate farm budgets and monitor spending variances.</p>
                 </div>
                 <button
-                    onClick={() => setIsCreateDrawerOpen(true)}
+                    onClick={() => setIsCreateModalOpen(true)}
                     className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-900/20 font-medium"
                 >
                     <Plus size={20} />
@@ -207,23 +207,24 @@ const CropPlanning = () => {
                 </div>
             </div>
 
-            {/* Drawers */}
-            <CreateCropCycleDrawer
-                isOpen={isCreateDrawerOpen}
-                onClose={() => setIsCreateDrawerOpen(false)}
-                onSubmit={(data) => {
-                    console.log('New Cycle:', data);
-                    setIsCreateDrawerOpen(false);
-                    // TODO: Add logic to update list
+            {/* Modal 1: Create Cycle */}
+            <CreateCropCycleModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={() => {
+                    // Refresh data or show success toast
+                    setIsCreateModalOpen(false);
                 }}
             />
 
-            <CropCycleDetailDrawer
-                isOpen={!!selectedCycle}
-                onClose={() => setSelectedCycle(null)}
-                cycle={selectedCycle}
-            />
-
+            {/* Modal 2: Cycle Details */}
+            {selectedCycle && (
+                <CropCycleDetailModal
+                    isOpen={!!selectedCycle}
+                    onClose={() => setSelectedCycle(null)}
+                    cycle={selectedCycle}
+                />
+            )}
         </div>
     );
 };

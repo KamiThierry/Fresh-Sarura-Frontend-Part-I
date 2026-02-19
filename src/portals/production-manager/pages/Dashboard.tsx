@@ -1,8 +1,8 @@
 import DashboardStats from '../components/DashboardStats';
 import QuickActionsGrid from '../components/QuickActionsGrid';
-import LogIntakeForm from '../components/LogIntakeForm';
-import CreateShipmentForm from '../components/CreateShipmentForm';
-import FindBatchDrawer from '../components/FindBatchDrawer';
+import LogIntakeModal from '../components/LogIntakeModal';
+import CreateShipmentModal from '../components/CreateShipmentModal';
+import FindBatchModal from '../components/FindBatchModal';
 import ExportTrendsChart from '../components/ExportTrendsChart';
 import QCResultsChart from '../components/QCResultsChart';
 import LossAnalyticsChart from '../components/LossAnalyticsChart';
@@ -62,22 +62,22 @@ const Dashboard = ({
                 onFindBatch={onFindBatch}
             />
 
-            {/* Log Intake Drawer */}
-            <LogIntakeForm
+            {/* Log Intake Modal */}
+            <LogIntakeModal
                 isOpen={isIntakeOpen}
                 onClose={onCloseIntake}
                 onSubmit={onIntakeSubmit}
             />
 
-            {/* Create Shipment Drawer */}
-            <CreateShipmentForm
+            {/* Create Shipment Modal */}
+            <CreateShipmentModal
                 isOpen={isShipmentOpen}
                 onClose={onCloseShipment}
                 onSubmit={onShipmentSubmit}
             />
 
-            {/* Find Batch Drawer */}
-            <FindBatchDrawer
+            {/* Find Batch Modal */}
+            <FindBatchModal
                 isOpen={isTraceabilityOpen}
                 onClose={onCloseTraceability}
             />

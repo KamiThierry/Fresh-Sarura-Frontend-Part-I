@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, Filter, Calendar, User, Plane, Hash, Package, Check, AlertCircle, ChevronDown, Plus, Save } from 'lucide-react';
 
 interface ShipmentBuilderModalProps {
@@ -256,8 +257,8 @@ const ShipmentBuilderModal = ({ isOpen, onClose }: ShipmentBuilderModalProps) =>
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop - High Z-index with lighter blur for readability */}
             <div className="absolute inset-0 bg-white/40 dark:bg-black/50 backdrop-blur-sm transition-all duration-300" onClick={onClose} />
 
@@ -279,6 +280,9 @@ const ShipmentBuilderModal = ({ isOpen, onClose }: ShipmentBuilderModalProps) =>
                                 <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg leading-none">{totalSelected}</span>
                             </div>
                         </div>
+                        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                            <X size={20} className="text-gray-500" />
+                        </button>
                     </div>
                 </div>
 
@@ -525,7 +529,8 @@ const ShipmentBuilderModal = ({ isOpen, onClose }: ShipmentBuilderModalProps) =>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

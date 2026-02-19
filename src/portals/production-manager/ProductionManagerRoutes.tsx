@@ -7,13 +7,13 @@ import FarmerManagement from './pages/FarmerManagement';
 import InventoryManagement from './pages/InventoryManagement';
 import QualityControl from './pages/QualityControl';
 import Logistics from './pages/Logistics';
-import CreatePackingListDrawer from './components/CreatePackingListDrawer';
+import CreatePackingListModal from './components/CreatePackingListModal';
 import CropPlanning from './pages/CropPlanning';
 import Traceability from './pages/Traceability';
 import AnalyticsReporting from './pages/AnalyticsReporting';
 import SettingsPage from './pages/Settings';
 
-import QCInspectionDrawer from './components/QCInspectionDrawer';
+import QCInspectionModal from './components/QCInspectionModal';
 
 const ProductionManagerRoutes = () => {
     const [isIntakeOpen, setIsIntakeOpen] = useState(false);
@@ -123,15 +123,15 @@ const ProductionManagerRoutes = () => {
                 </Route>
             </Routes>
 
-            {/* Global Drawers (Always available, outside Layout/Routes or inside context provider ideally) */}
-            <QCInspectionDrawer
+            {/* Global Modals (Always available, outside Layout/Routes or inside context provider ideally) */}
+            <QCInspectionModal
                 isOpen={isQCOpen}
                 onClose={() => setIsQCOpen(false)}
                 onSubmit={handleQCSubmit}
                 onConfirm={() => { }}
             />
 
-            <CreatePackingListDrawer
+            <CreatePackingListModal
                 isOpen={isPackingListOpen}
                 onClose={() => setIsPackingListOpen(false)}
                 onSubmit={handlePackingListSubmit}

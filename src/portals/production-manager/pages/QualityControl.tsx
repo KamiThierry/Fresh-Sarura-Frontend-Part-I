@@ -3,7 +3,7 @@ import {
     CheckCircle, AlertOctagon, ShieldCheck, Activity, Calendar,
     MoreHorizontal, FileText, ChevronRight, AlertTriangle, ClipboardCheck, Search, Filter
 } from 'lucide-react';
-import ScheduleInspectionDrawer from '../components/ScheduleInspectionDrawer';
+import ScheduleInspectionModal from '../components/ScheduleInspectionModal';
 
 interface QualityControlProps {
     onPerformInspection: () => void;
@@ -71,6 +71,12 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
         { id: 'INS-003', date: 'Jan 22', batch: 'GF-202', product: 'Chili', inspector: 'Sarah M.', grade: 'B', notes: 'Minor shape irregularity', status: 'Passed' },
         { id: 'INS-004', date: 'Jan 22', batch: 'GF-201', product: 'French Beans', inspector: 'David K.', grade: 'A', notes: '-', status: 'Passed' },
     ];
+
+
+    const handleScheduleSubmit = (inspection: any) => {
+        console.log('Scheduled Inspection:', inspection);
+        setIsScheduleOpen(false);
+    };
 
     return (
         <div className="space-y-6 pb-20">
@@ -255,10 +261,11 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                 )}
             </div>
 
-            {/* Schedule Inspection Drawer */}
-            <ScheduleInspectionDrawer
+            {/* Schedule Inspection Modal */}
+            <ScheduleInspectionModal
                 isOpen={isScheduleOpen}
                 onClose={() => setIsScheduleOpen(false)}
+                onSubmit={handleScheduleSubmit}
             />
         </div>
     );

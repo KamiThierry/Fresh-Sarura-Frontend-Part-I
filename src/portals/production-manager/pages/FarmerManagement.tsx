@@ -3,10 +3,11 @@ import {
   Search, Filter, Plus, Download, MoreHorizontal,
   Users, UserCheck, Map, FileWarning, Star, MapPin
 } from 'lucide-react';
-import FarmerRegistrationDrawer from '../components/FarmerRegistrationDrawer';
+import FarmerRegistrationModal from '../components/FarmerRegistrationModal';
 
 const FarmerManagement = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // State
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -51,7 +52,7 @@ const FarmerManagement = () => {
             Export List
           </button>
           <button
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={() => setIsRegistrationOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -164,12 +165,13 @@ const FarmerManagement = () => {
         </table>
       </div>
 
-      {/* Registration Drawer */}
-      <FarmerRegistrationDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onFarmerAdded={() => {
-          setIsDrawerOpen(false);
+      {/* Registration Modal */}
+      <FarmerRegistrationModal
+        isOpen={isRegistrationOpen}
+        onClose={() => setIsRegistrationOpen(false)}
+        onSubmit={(data) => {
+          console.log('New Farmer:', data);
+          setIsRegistrationOpen(false);
           // Refresh logic would go here
         }}
       />

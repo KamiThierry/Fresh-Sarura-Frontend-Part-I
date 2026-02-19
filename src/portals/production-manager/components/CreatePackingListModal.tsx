@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plane, FileText, Scale, Package, Save, Printer, Trash2, CheckCircle, Search } from 'lucide-react';
 
-interface CreatePackingListDrawerProps {
+interface CreatePackingListModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: any) => void;
@@ -16,7 +17,7 @@ interface StockItem {
     allocatedWeight?: number; // Should be string in input but number for logic
 }
 
-const CreatePackingListDrawer: React.FC<CreatePackingListDrawerProps> = ({ isOpen, onClose, onSubmit }) => {
+const CreatePackingListModal: React.FC<CreatePackingListModalProps> = ({ isOpen, onClose, onSubmit }) => {
     if (!isOpen) return null;
 
     const [formData, setFormData] = useState({
@@ -76,16 +77,16 @@ const CreatePackingListDrawer: React.FC<CreatePackingListDrawerProps> = ({ isOpe
 
     const totalNetWeight = selectedStock.reduce((sum, item) => sum + (item.allocatedWeight || 0), 0);
 
-    return (
-        <div className="fixed top-16 left-0 right-0 bottom-0 z-50 overflow-hidden">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             ></div>
 
-            {/* Drawer */}
-            <div className="absolute inset-y-0 right-0 max-w-xl w-full h-full bg-white dark:bg-gray-800 shadow-2xl flex flex-col animate-slide-in-right border-l border-gray-100 dark:border-gray-700">
+            {/* Modal */}
+            <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-purple-50/50 dark:bg-purple-900/10">
@@ -191,8 +192,8 @@ const CreatePackingListDrawer: React.FC<CreatePackingListDrawerProps> = ({ isOpe
                                         type="button"
                                         onClick={() => setProductFilter(tab)}
                                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${productFilter === tab
-                                                ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+                                            ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
                                             }`}
                                     >
                                         {tab}
@@ -211,8 +212,8 @@ const CreatePackingListDrawer: React.FC<CreatePackingListDrawerProps> = ({ isOpe
                                             key={item.id}
                                             onClick={() => handleSelectStock(item)}
                                             className={`relative group p-4 rounded-xl border-2 transition-all cursor-pointer ${isSelected
-                                                    ? 'border-purple-500 bg-purple-50/30 dark:bg-purple-900/10 shadow-sm'
-                                                    : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-200 dark:hover:border-purple-800'
+                                                ? 'border-purple-500 bg-purple-50/30 dark:bg-purple-900/10 shadow-sm'
+                                                : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-200 dark:hover:border-purple-800'
                                                 }`}
                                         >
                                             {isSelected && (
@@ -334,8 +335,9 @@ const CreatePackingListDrawer: React.FC<CreatePackingListDrawerProps> = ({ isOpe
                 </div>
 
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
-export default CreatePackingListDrawer;
+export default CreatePackingListModal;
