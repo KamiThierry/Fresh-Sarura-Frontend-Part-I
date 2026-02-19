@@ -7,7 +7,7 @@ import Fleet from './pages/Fleet';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
 
-const LogisticsOfficerRoutes = () => {
+const LogisticsRoutes = () => {
     return (
         <Routes>
             <Route element={<Layout />}>
@@ -26,4 +26,4 @@ const LogisticsOfficerRoutes = () => {
     );
 };
 
-export default LogisticsOfficerRoutes;
+export default LogisticsRoutes;
