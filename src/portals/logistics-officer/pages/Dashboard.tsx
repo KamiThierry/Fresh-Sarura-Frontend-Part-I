@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Truck, Scale, Plane, FileWarning, Plus } from 'lucide-react';
 import ActiveFleetTracker from '../components/ActiveFleetTracker';
 import ActionCenter from '../components/ActionCenter';
 import UpcomingDepartures from '../components/UpcomingDepartures';
+import ShipmentBuilderModal from '../components/ShipmentBuilderModal';
 
 const Dashboard = () => {
+    const [isShipmentModalOpen, setIsShipmentModalOpen] = useState(false);
+
     return (
         <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
             {/* Header */}
@@ -12,7 +16,10 @@ const Dashboard = () => {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Logistics Operations</h1>
                     <p className="text-gray-500 dark:text-gray-400">Overview of active collections, shipments, and fleet status.</p>
                 </div>
-                <button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+                <button
+                    onClick={() => setIsShipmentModalOpen(true)}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                >
                     <Plus size={18} />
                     New Shipment
                 </button>
@@ -85,6 +92,12 @@ const Dashboard = () => {
                     <UpcomingDepartures />
                 </div>
             </div>
+
+            {/* Modals */}
+            <ShipmentBuilderModal
+                isOpen={isShipmentModalOpen}
+                onClose={() => setIsShipmentModalOpen(false)}
+            />
         </div>
     );
 };

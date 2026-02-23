@@ -12,13 +12,13 @@ import CropPlanning from './pages/CropPlanning';
 import Traceability from './pages/Traceability';
 import AnalyticsReporting from './pages/AnalyticsReporting';
 import SettingsPage from './pages/Settings';
+import ClientRequests from './pages/ClientRequests';
 
 import QCInspectionModal from './components/QCInspectionModal';
 
 const ProductionManagerRoutes = () => {
     const [isIntakeOpen, setIsIntakeOpen] = useState(false);
     const [isQCOpen, setIsQCOpen] = useState(false);
-    const [isShipmentOpen, setIsShipmentOpen] = useState(false);
     const [isTraceabilityOpen, setIsTraceabilityOpen] = useState(false);
     const [isPackingListOpen, setIsPackingListOpen] = useState(false);
 
@@ -47,16 +47,6 @@ const ProductionManagerRoutes = () => {
         alert(`QC Inspection Submitted! New Grade: ${result}`);
     };
 
-    const handleCreateShipment = () => {
-        setIsShipmentOpen(true);
-    };
-
-    const handleShipmentSubmit = (weight: number) => {
-        setScheduledExports((prev) => prev + weight);
-        setIsShipmentOpen(false);
-        alert(`Shipment Booked! Added ${weight} kg to schedule.`);
-    };
-
     const handleFindBatch = () => {
         setIsTraceabilityOpen(true);
     };
@@ -83,16 +73,12 @@ const ProductionManagerRoutes = () => {
                                 qualityGrade={qualityGrade}
                                 scheduledExports={scheduledExports}
                                 isIntakeOpen={isIntakeOpen}
-                                isShipmentOpen={isShipmentOpen}
                                 isTraceabilityOpen={isTraceabilityOpen}
                                 onLogIntake={handleLogIntake}
                                 onQCInspection={handleQCInspection}
-                                onCreateShipment={handleCreateShipment}
                                 onFindBatch={handleFindBatch}
                                 onCloseIntake={() => setIsIntakeOpen(false)}
                                 onIntakeSubmit={handleIntakeSubmit}
-                                onCloseShipment={() => setIsShipmentOpen(false)}
-                                onShipmentSubmit={handleShipmentSubmit}
                                 onCloseTraceability={() => setIsTraceabilityOpen(false)}
                             />
                         }
@@ -108,15 +94,8 @@ const ProductionManagerRoutes = () => {
                     <Route path="/analytics" element={<AnalyticsReporting />} />
                     <Route path="/settings" element={<SettingsPage />} />
 
-                    {/* Coming Soon Route */}
-                    <Route
-                        path="/communication"
-                        element={
-                            <div className="p-6 flex items-center justify-center h-full">
-                                <p className="text-[#6B7280] text-lg">Communication - Coming Soon...</p>
-                            </div>
-                        }
-                    />
+                    {/* Client Orders & Requests */}
+                    <Route path="/communication" element={<ClientRequests />} />
 
                     {/* Catch all - redirect to home */}
                     <Route path="*" element={<Navigate to="/" replace />} />

@@ -48,7 +48,20 @@ const CropPlanning = () => {
     ];
 
     const handleManageCycle = (cycle: any) => {
-        setSelectedCycle(cycle);
+        // Hydrate with mock details expected by the modal to prevent crashes
+        const detailedCycle = {
+            ...cycle,
+            cycleId: `CY-${2024000 + cycle.id}`,
+            status: 'Active',
+            landSize: '2.5 Hectares',
+            startDate: 'Jan 15, 2024',
+            endDate: 'May 20, 2024',
+            yieldGoal: '12 Tons',
+            // Flatten budget for modal compatibility
+            spent: cycle.budget.spent,
+            budget: cycle.budget.total
+        };
+        setSelectedCycle(detailedCycle);
     };
 
     const calculateProgress = (spent: number, total: number) => {

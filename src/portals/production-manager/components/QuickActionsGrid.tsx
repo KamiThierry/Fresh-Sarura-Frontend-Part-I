@@ -1,14 +1,13 @@
 
-import { PlusCircle, Microscope, FileCheck, Search } from 'lucide-react';
+import { PlusCircle, Microscope, Search } from 'lucide-react';
 
 interface QuickActionsGridProps {
   onLogIntake?: () => void;
   onQCInspection?: () => void;
-  onCreateShipment?: () => void;
   onFindBatch?: () => void;
 }
 
-const QuickActionsGrid = ({ onLogIntake, onQCInspection, onCreateShipment, onFindBatch }: QuickActionsGridProps) => {
+const QuickActionsGrid = ({ onLogIntake, onQCInspection, onFindBatch }: QuickActionsGridProps) => {
   const actions = [
     {
       icon: PlusCircle,
@@ -31,16 +30,6 @@ const QuickActionsGrid = ({ onLogIntake, onQCInspection, onCreateShipment, onFin
       action: onQCInspection,
     },
     {
-      icon: FileCheck,
-      title: 'Create Shipment',
-      sub: 'Packing List & Docs',
-      color: 'text-[#7B1FA2]',
-      bgColor: 'bg-[#F3E5F5]',
-      borderColor: 'border-[#7B1FA2]/20',
-      hoverColor: 'hover:border-[#7B1FA2]',
-      action: onCreateShipment,
-    },
-    {
       icon: Search,
       title: 'Find Batch',
       sub: 'Traceability Lookup',
@@ -53,7 +42,7 @@ const QuickActionsGrid = ({ onLogIntake, onQCInspection, onCreateShipment, onFin
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-5 mb-6">
+    <div className="grid grid-cols-3 gap-5 mb-6">
       {actions.map((action, index) => (
         <button
           key={index}

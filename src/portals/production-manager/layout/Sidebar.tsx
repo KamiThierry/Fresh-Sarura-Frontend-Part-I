@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, Package, ShieldCheck, Truck, MessageSquare, BarChart3, FileCheck, Settings, LogOut, Sprout } from 'lucide-react';
+import { Home, Users, Package, ShieldCheck, MessageSquare, BarChart3, FileCheck, Settings, LogOut, Sprout } from 'lucide-react';
 
 const Sidebar = () => {
     const navGroups = [
@@ -16,8 +16,7 @@ const Sidebar = () => {
                 { path: '/crop-planning', icon: Sprout, label: 'Crop Planning' },
                 { path: '/inventory', icon: Package, label: 'Inventory & Batches' },
                 { path: '/quality-control', icon: ShieldCheck, label: 'Quality Control (QC)' },
-                { path: '/logistics', icon: Truck, label: 'Logistics & Scheduling' },
-                { path: '/communication', icon: MessageSquare, label: 'Communication' },
+                { path: '/communication', icon: MessageSquare, label: 'Client Requests' },
             ]
         },
         {

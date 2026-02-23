@@ -1,7 +1,6 @@
 import DashboardStats from '../components/DashboardStats';
 import QuickActionsGrid from '../components/QuickActionsGrid';
 import LogIntakeModal from '../components/LogIntakeModal';
-import CreateShipmentModal from '../components/CreateShipmentModal';
 import FindBatchModal from '../components/FindBatchModal';
 import ExportTrendsChart from '../components/ExportTrendsChart';
 import QCResultsChart from '../components/QCResultsChart';
@@ -13,16 +12,12 @@ interface DashboardProps {
     qualityGrade: string;
     scheduledExports: number;
     isIntakeOpen: boolean;
-    isShipmentOpen: boolean;
     isTraceabilityOpen: boolean;
     onLogIntake: () => void;
     onQCInspection: () => void;
-    onCreateShipment: () => void;
     onFindBatch: () => void;
     onCloseIntake: () => void;
     onIntakeSubmit: (weight: number) => void;
-    onCloseShipment: () => void;
-    onShipmentSubmit: (weight: number) => void;
     onCloseTraceability: () => void;
 }
 
@@ -31,16 +26,12 @@ const Dashboard = ({
     qualityGrade,
     scheduledExports,
     isIntakeOpen,
-    isShipmentOpen,
     isTraceabilityOpen,
     onLogIntake,
     onQCInspection,
-    onCreateShipment,
     onFindBatch,
     onCloseIntake,
     onIntakeSubmit,
-    onCloseShipment,
-    onShipmentSubmit,
     onCloseTraceability
 }: DashboardProps) => {
     return (
@@ -58,7 +49,6 @@ const Dashboard = ({
             <QuickActionsGrid
                 onLogIntake={onLogIntake}
                 onQCInspection={onQCInspection}
-                onCreateShipment={onCreateShipment}
                 onFindBatch={onFindBatch}
             />
 
@@ -67,13 +57,6 @@ const Dashboard = ({
                 isOpen={isIntakeOpen}
                 onClose={onCloseIntake}
                 onSubmit={onIntakeSubmit}
-            />
-
-            {/* Create Shipment Modal */}
-            <CreateShipmentModal
-                isOpen={isShipmentOpen}
-                onClose={onCloseShipment}
-                onSubmit={onShipmentSubmit}
             />
 
             {/* Find Batch Modal */}
