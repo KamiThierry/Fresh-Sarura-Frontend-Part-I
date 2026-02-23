@@ -129,11 +129,11 @@ const FindBatchModal = ({ isOpen, onClose }: FindBatchModalProps) => {
 
                             {/* Vertical Timeline */}
                             <div className="p-6">
-                                <div className="relative pl-8 border-l-2 border-dashed border-gray-200 dark:border-gray-700 space-y-12">
+                                <div className="relative pl-14 border-l-2 border-dashed border-gray-200 dark:border-gray-700 space-y-12">
 
                                     {/* Step 1 */}
                                     <div className="relative">
-                                        <div className="absolute -left-[41px] bg-white dark:bg-gray-800 p-1">
+                                        <div className="absolute -left-[49px] bg-white dark:bg-gray-800 p-1">
                                             <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 border-4 border-white dark:border-gray-800">
                                                 <User size={18} />
                                             </div>
@@ -147,7 +147,7 @@ const FindBatchModal = ({ isOpen, onClose }: FindBatchModalProps) => {
 
                                     {/* Step 2 */}
                                     <div className="relative">
-                                        <div className="absolute -left-[41px] bg-white dark:bg-gray-800 p-1">
+                                        <div className="absolute -left-[49px] bg-white dark:bg-gray-800 p-1">
                                             <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 border-4 border-white dark:border-gray-800">
                                                 <Scale size={18} />
                                             </div>
@@ -164,7 +164,7 @@ const FindBatchModal = ({ isOpen, onClose }: FindBatchModalProps) => {
 
                                     {/* Step 3 */}
                                     <div className="relative">
-                                        <div className="absolute -left-[41px] bg-white dark:bg-gray-800 p-1">
+                                        <div className="absolute -left-[49px] bg-white dark:bg-gray-800 p-1">
                                             <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 border-4 border-white dark:border-gray-800">
                                                 <ShieldCheck size={18} />
                                             </div>
@@ -181,7 +181,7 @@ const FindBatchModal = ({ isOpen, onClose }: FindBatchModalProps) => {
 
                                     {/* Step 4 (Current) */}
                                     <div className="relative">
-                                        <div className="absolute -left-[41px] bg-white dark:bg-gray-800 p-1">
+                                        <div className="absolute -left-[49px] bg-white dark:bg-gray-800 p-1">
                                             <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 border-4 border-white dark:border-gray-800 animate-pulse">
                                                 <Plane size={18} />
                                             </div>

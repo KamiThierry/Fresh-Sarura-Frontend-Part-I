@@ -152,10 +152,6 @@ const CropPlanning = () => {
                         Manage your assigned crops, track budgets, and request inputs.
                     </p>
                 </div>
-                <button className="hidden md:flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-green-700 transition-colors">
-                    <Plus size={18} />
-                    New Request
-                </button>
             </div>
 
             {/* Content Grid */}
@@ -277,8 +273,8 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
                                 key={task.id}
                                 onClick={() => onTaskClick(task)}
                                 className={`flex items-center gap-3 py-2 px-2 rounded-lg transition-all border border-transparent ${task.completed
-                                        ? 'opacity-60 cursor-default'
-                                        : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-100 dark:hover:border-gray-600 active:scale-[0.99] group'
+                                    ? 'opacity-60 cursor-default'
+                                    : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-100 dark:hover:border-gray-600 active:scale-[0.99] group'
                                     }`}
                             >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}>
@@ -291,8 +287,8 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
                                     <Camera size={12} className="text-gray-400 group-hover:text-emerald-500 shrink-0" />
                                 )}
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${task.completed
-                                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
+                                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
                                     }`}>
                                     {task.date}
                                 </span>

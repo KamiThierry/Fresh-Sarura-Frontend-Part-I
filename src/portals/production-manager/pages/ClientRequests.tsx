@@ -90,22 +90,26 @@ const initialRequests: ClientRequest[] = [
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<RequestStatus, { label: string; pill: string }> = {
+const STATUS_CONFIG: Record<RequestStatus, { label: string; pill: string; dot: string }> = {
     new: {
         label: 'New',
         pill: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+        dot: 'bg-red-500',
     },
     pending: {
         label: 'Pending',
         pill: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+        dot: 'bg-amber-500',
     },
     confirmed: {
         label: 'Confirmed',
         pill: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+        dot: 'bg-emerald-500',
     },
     declined: {
         label: 'Declined',
         pill: 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
+        dot: 'bg-gray-400',
     },
 };
 
