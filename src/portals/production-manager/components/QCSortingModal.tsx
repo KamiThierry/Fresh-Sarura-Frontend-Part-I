@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CheckCircle, AlertTriangle, Scale, Layers, Info, Award, TrendingDown, AlertCircle, ArrowRight } from 'lucide-react';
+import { X, CheckCircle, Scale, Layers, Info, Award, AlertCircle, ArrowRight } from 'lucide-react';
 
 interface QCSortingModalProps {
     isOpen: boolean;
@@ -14,7 +14,6 @@ const QCSortingModal = ({ isOpen, onClose, intakeId, onConfirm }: QCSortingModal
 
     const [formData, setFormData] = useState({
         gradeA: '',
-        gradeB: '',
         rejected: '',
         storageLocation: '',
     });
@@ -31,7 +30,6 @@ const QCSortingModal = ({ isOpen, onClose, intakeId, onConfirm }: QCSortingModal
 
     const calculatedTotal = (
         (parseFloat(formData.gradeA) || 0) +
-        (parseFloat(formData.gradeB) || 0) +
         (parseFloat(formData.rejected) || 0)
     );
 
@@ -106,7 +104,7 @@ const QCSortingModal = ({ isOpen, onClose, intakeId, onConfirm }: QCSortingModal
 
                     <form id="sorting-form" onSubmit={handleSubmit} className="space-y-8">
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Grade A */}
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
@@ -124,31 +122,6 @@ const QCSortingModal = ({ isOpen, onClose, intakeId, onConfirm }: QCSortingModal
                                             min="0"
                                             value={formData.gradeA}
                                             onChange={(e) => setFormData({ ...formData, gradeA: e.target.value })}
-                                            className="w-full bg-transparent text-3xl font-bold text-gray-900 dark:text-white outline-none placeholder-gray-200 dark:placeholder-gray-700"
-                                            placeholder="0"
-                                        />
-                                        <span className="text-sm text-gray-400 font-medium">kg</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Grade B */}
-                            <div className="space-y-3">
-                                <label className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                    Grade B
-                                </label>
-                                <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-yellow-100 dark:border-yellow-900/30 focus-within:border-yellow-500 transition-colors">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs text-gray-500 uppercase font-medium">Local Market</span>
-                                        <TrendingDown size={16} className="text-yellow-500" />
-                                    </div>
-                                    <div className="flex items-baseline gap-2">
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={formData.gradeB}
-                                            onChange={(e) => setFormData({ ...formData, gradeB: e.target.value })}
                                             className="w-full bg-transparent text-3xl font-bold text-gray-900 dark:text-white outline-none placeholder-gray-200 dark:placeholder-gray-700"
                                             placeholder="0"
                                         />

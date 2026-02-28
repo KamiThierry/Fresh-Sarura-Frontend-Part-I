@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Truck, MapPin, Search, Filter, CheckCircle2, AlertTriangle, ArrowRight, Plane, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Truck, MapPin, Search, Filter, CheckCircle2, AlertTriangle, ArrowRight, Plane, Package, Phone, X as XIcon, X, UserCircle, Map as MapIcon } from 'lucide-react';
 import RoutePreviewMap from '../components/RoutePreviewMap';
-import { X, Map as MapIcon } from 'lucide-react';
+
 
 const HARVEST_DEMAND = [
     { id: '1', farm: 'Simbi Farm A', crop: 'Avocado (Hass)', weight: 2000, status: 'Harvested 4h ago', urgency: 'low', lat: -2.333, lng: 29.650 },
@@ -21,10 +22,24 @@ const AIRPORT_TRANSFERS = [
 ];
 
 const Collections = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const focusTrip = searchParams.get('focus');
+    const assignAction = searchParams.get('action');
+    const assignFarm = searchParams.get('farm');
+
     const [dispatchMode, setDispatchMode] = useState<'farm' | 'airport'>('farm');
     const [selectedFarms, setSelectedFarms] = useState<string[]>([]);
     const [selectedTruck, setSelectedTruck] = useState<string | null>(null);
     const [dispatched, setDispatched] = useState(false);
+
+    // Auto-select Kayonza Farm when navigated from deep link
+    useEffect(() => {
+        if (assignAction === 'assign' && assignFarm === 'kayonza') {
+            setDispatchMode('farm');
+            // Simbi Farm A is the closest match in mock data; select it to simulate Kayonza
+            setSelectedFarms(['1']);
+        }
+    }, [assignAction, assignFarm]);
 
     const toggleFarmSelection = (id: string) => {
         setSelectedFarms(prev =>
@@ -62,6 +77,78 @@ const Collections = () => {
 
     return (
         <div className="space-y-4 animate-fade-in pb-24 relative min-h-[calc(100vh-100px)] flex flex-col">
+
+            {/* ── Deep-link: Trip #101 Focus Banner ── */}
+            {focusTrip === 'trip-101' && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-5 flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 shrink-0">
+                    <div className="p-2.5 bg-amber-100 dark:bg-amber-900/40 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+                        <Truck size={22} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h2 className="text-base font-bold text-amber-900 dark:text-amber-300">Trip #101 — Delayed</h2>
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-200 dark:bg-amber-800/60 text-amber-800 dark:text-amber-300 rounded-full uppercase tracking-wide">30m Behind</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 mt-3">
+                            <div className="flex items-center gap-2">
+                                <UserCircle size={16} className="text-amber-500 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase">Driver</p>
+                                    <p className="text-sm font-bold text-amber-900 dark:text-white">Peter Nioroge</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Phone size={16} className="text-amber-500 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase">Phone</p>
+                                    <p className="text-sm font-bold text-amber-900 dark:text-white">+250 788 456 789</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <MapPin size={16} className="text-amber-500 flex-shrink-0" />
+                                <div>
+                                    <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase">Status</p>
+                                    <p className="text-sm font-bold text-amber-900 dark:text-white">En Route — Simbi Farm</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setSearchParams({})}
+                        className="p-1.5 rounded-full hover:bg-amber-200 dark:hover:bg-amber-800/50 text-amber-500 transition-colors flex-shrink-0"
+                    >
+                        <XIcon size={16} />
+                    </button>
+                </div>
+            )}
+
+            {/* ── Deep-link: Assign Vehicle Banner ── */}
+            {assignAction === 'assign' && assignFarm === 'kayonza' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-2xl p-5 flex items-start gap-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 shrink-0">
+                    <div className="p-2.5 bg-blue-100 dark:bg-blue-900/40 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
+                        <Package size={22} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h2 className="text-base font-bold text-blue-900 dark:text-blue-300">Assign Vehicle — Kayonza Farm</h2>
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-200 dark:bg-blue-800/60 text-blue-800 dark:text-blue-300 rounded-full uppercase tracking-wide">1.2 Tons Ready</span>
+                        </div>
+                        <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                            A harvest of <strong>1,200 kg</strong> is ready for pickup. Select a truck from the Fleet panel below and confirm dispatch.
+                        </p>
+                        <p className="text-xs text-blue-500 dark:text-blue-500 mt-2 flex items-center gap-1">
+                            <ArrowRight size={12} /> Farm pre-selected in the dispatch queue below.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setSearchParams({})}
+                        className="p-1.5 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800/50 text-blue-500 transition-colors flex-shrink-0"
+                    >
+                        <XIcon size={16} />
+                    </button>
+                </div>
+            )}
+
             {/* Header & Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
                 <div>
@@ -236,13 +323,29 @@ const Collections = () => {
                     </div>
                 </div>
 
-                {/* Bottom Section: Map Preview - Fixed 350px Height */}
-                <div className="h-[350px] shrink-0 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-                    <div className="h-full w-full relative">
-                        <div className="absolute top-4 left-4 z-[999] bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 text-xs font-bold text-gray-600 flex items-center gap-2">
-                            <MapIcon size={14} />
-                            Route Preview
+                {/* Bottom Section: Interactive Map */}
+                <div className="shrink-0 mt-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+
+                    {/* Card header */}
+                    <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+                        <div className="flex items-start gap-2">
+                            <MapIcon size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <h2 className="text-[17px] font-bold text-gray-900 dark:text-white">
+                                    Active Collection Zones &amp; Routes
+                                </h2>
+                                <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed max-w-lg">
+                                    Circle size represents the total harvest weight, color indicates the current collection status. Click on any marker to view specific farm and driver details.
+                                </p>
+                            </div>
                         </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0 ml-4 mt-0.5">
+                            Live View
+                        </span>
+                    </div>
+
+                    {/* Map */}
+                    <div className="h-[420px] w-full relative">
                         <RoutePreviewMap
                             selectedFarms={selectedFarms}
                             selectedTruck={selectedTruck}
@@ -251,6 +354,8 @@ const Collections = () => {
                         />
                     </div>
                 </div>
+
+
 
             </div>
 

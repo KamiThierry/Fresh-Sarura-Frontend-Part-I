@@ -1,56 +1,53 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Marker, ZoomControl, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
 
-// Fix Leaflet's default icon issue
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+// ── HQ Packhouse location (Kigali) ──────────────────────────────────────────
+const HQ: [number, number] = [-1.9441, 30.0619];
 
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom Icons
-const truckIcon = new L.DivIcon({
+// ── Custom HQ marker (blue pulsing div icon) ─────────────────────────────────
+const hqIcon = new L.DivIcon({
     className: 'bg-transparent',
-    html: `<div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white shadow-md text-white">
-             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-           </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
+    html: `
+        <div style="
+            width:36px;height:36px;
+            background:#2563eb;
+            border-radius:50%;
+            border:3px solid white;
+            box-shadow:0 0 0 4px rgba(37,99,235,0.3), 0 2px 8px rgba(0,0,0,0.35);
+            display:flex;align-items:center;justify-content:center;
+        ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        </div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
 });
 
-const farmIconSelected = new L.DivIcon({
-    className: 'bg-transparent',
-    html: `<div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-md text-white animate-bounce-short">
-             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-           </div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-});
+// ── Color + radius helpers ───────────────────────────────────────────────────
+const getMarkerColor = (urgency: string): string => {
+    if (urgency === 'high') return '#ef4444';   // red  — delayed
+    if (urgency === 'medium') return '#f59e0b'; // yellow — en route
+    return '#22c55e';                           // green — harvest ready
+};
 
-const farmIconGray = new L.DivIcon({
-    className: 'bg-transparent',
-    html: `<div class="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center border-2 border-white shadow-sm text-white">
-             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-           </div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-});
+const getRadius = (weight: number): number => {
+    // Scale between 10 and 28 px
+    const min = 500, max = 5000;
+    const clamped = Math.min(Math.max(weight, min), max);
+    return 10 + ((clamped - min) / (max - min)) * 18;
+};
 
-// Component to handle bounds
+// ── Auto-fit bounds to all visible points ────────────────────────────────────
 const MapBounds = ({ points }: { points: [number, number][] }) => {
     const map = useMap();
     useEffect(() => {
         if (points.length > 0) {
-            const bounds = L.latLngBounds(points);
-            map.fitBounds(bounds, { padding: [50, 50] });
+            map.fitBounds(L.latLngBounds(points), { padding: [50, 50] });
         }
     }, [points, map]);
     return null;
@@ -63,77 +60,192 @@ interface RoutePreviewMapProps {
     allTrucks: any[];
 }
 
-const RoutePreviewMap = ({ selectedFarms, selectedTruck, allFarms, allTrucks }: RoutePreviewMapProps) => {
+const LEGEND_ITEMS = [
+    { color: '#22c55e', label: 'Harvest Ready' },
+    { color: '#f59e0b', label: 'En Route' },
+    { color: '#ef4444', label: 'Pickup Delayed' },
+    { color: '#2563eb', label: 'Main Packhouse (HQ)' },
+];
 
-    // Calculate route points (Truck -> Farms)
+const RoutePreviewMap = ({ selectedFarms, selectedTruck, allFarms, allTrucks }: RoutePreviewMapProps) => {
     const truckData = allTrucks.find(t => t.id === selectedTruck);
     const selectedFarmData = allFarms.filter(f => selectedFarms.includes(f.id));
 
+    // Build an ordered route: truck → each selected farm → HQ
     const routePoints: [number, number][] = [];
+    if (truckData?.lat) routePoints.push([truckData.lat, truckData.lng]);
+    selectedFarmData.forEach(f => { if (f.lat) routePoints.push([f.lat, f.lng]); });
+    if (routePoints.length > 0) routePoints.push(HQ);
 
-    // HQ Location (Kigali)
-    const HQ_LOCATION: [number, number] = [-1.9441, 30.0619];
-
-    if (truckData && truckData.lat && truckData.lng) {
-        routePoints.push([truckData.lat, truckData.lng]);
-    }
-
-    selectedFarmData.forEach(f => {
-        if (f.lat && f.lng) routePoints.push([f.lat, f.lng]);
-    });
-
-    // Return to HQ if route exists
-    if (routePoints.length > 0) {
-        routePoints.push(HQ_LOCATION);
-    }
+    // All map points for auto-fit (all farms + HQ)
+    const allPoints: [number, number][] = [
+        ...allFarms.filter(f => f.lat).map(f => [f.lat, f.lng] as [number, number]),
+        HQ,
+    ];
 
     return (
-        <div className="h-full w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 relative z-0">
+        <div className="h-full w-full rounded-xl overflow-hidden relative z-0">
+
             <MapContainer
                 center={[-1.9403, 29.8739]}
-                zoom={9}
+                zoom={8}
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={false}
             >
+                {/* Base tile — OpenStreetMap */}
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                {/* Bounds Controller */}
-                {routePoints.length > 0 && <MapBounds points={routePoints} />}
+                {/* Zoom control — top-left */}
+                <ZoomControl position="topleft" />
 
-                {/* Route Line */}
+                {/* Auto-fit to all farm points */}
+                <MapBounds points={allPoints} />
+
+                {/* ── Dashed route polyline ───────────────────────────── */}
                 {routePoints.length > 1 && (
                     <Polyline
                         positions={routePoints}
-                        color="#3b82f6"
-                        weight={4}
-                        opacity={0.8}
-                        dashArray={[10, 10]}
+                        pathOptions={{
+                            color: '#3b82f6',
+                            weight: 3,
+                            opacity: 0.75,
+                            dashArray: '10 8',
+                        }}
                     />
                 )}
 
-                {/* Farms */}
-                {allFarms.map(farm => (
-                    <Marker
-                        key={farm.id}
-                        position={[farm.lat, farm.lng]}
-                        icon={selectedFarms.includes(farm.id) ? farmIconSelected : farmIconGray}
-                        opacity={selectedFarms.includes(farm.id) ? 1 : 0.6}
-                    >
-                        <Popup>{farm.farm}</Popup>
-                    </Marker>
-                ))}
+                {/* ── Farm circle markers ─────────────────────────────── */}
+                {allFarms.map(farm => {
+                    const color = getMarkerColor(farm.urgency ?? 'low');
+                    const radius = getRadius(farm.weight ?? 1000);
+                    const isSelected = selectedFarms.includes(farm.id);
 
-                {/* Selected Truck */}
-                {truckData && (
-                    <Marker position={[truckData.lat, truckData.lng]} icon={truckIcon}>
-                        <Popup>{truckData.driver}</Popup>
-                    </Marker>
+                    return (
+                        <CircleMarker
+                            key={farm.id}
+                            center={[farm.lat, farm.lng]}
+                            radius={radius}
+                            pathOptions={{
+                                fillColor: color,
+                                color: 'white',
+                                weight: isSelected ? 3 : 2,
+                                opacity: 1,
+                                fillOpacity: isSelected ? 0.95 : 0.65,
+                            }}
+                        >
+                            {/* Hover tooltip */}
+                            <Tooltip direction="top" offset={[0, -radius]} sticky>
+                                <span className="font-semibold">{farm.farm ?? farm.destination}</span>
+                            </Tooltip>
+
+                            {/* Click popup */}
+                            <Popup>
+                                <div style={{ minWidth: 180 }}>
+                                    <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+                                        {farm.farm ?? farm.destination}
+                                    </p>
+                                    <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>
+                                        🌾 {farm.crop ?? farm.flight ?? '—'}
+                                    </p>
+                                    <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
+                                        ⚖️ {(farm.weight ?? farm.weight ?? 0).toLocaleString()} kg
+                                    </p>
+                                    <span style={{
+                                        display: 'inline-block',
+                                        padding: '2px 8px',
+                                        borderRadius: 9999,
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        backgroundColor: color + '22',
+                                        color: color,
+                                        border: `1px solid ${color}55`,
+                                    }}>
+                                        {farm.status ?? 'Waiting for assignment'}
+                                    </span>
+                                </div>
+                            </Popup>
+                        </CircleMarker>
+                    );
+                })}
+
+                {/* ── HQ Packhouse marker ─────────────────────────────── */}
+                <Marker position={HQ} icon={hqIcon}>
+                    <Tooltip direction="top" offset={[0, -20]} permanent={false}>
+                        <span className="font-semibold">Kigali Packhouse (HQ)</span>
+                    </Tooltip>
+                    <Popup>
+                        <div style={{ minWidth: 160 }}>
+                            <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>🏭 Kigali Packhouse</p>
+                            <p style={{ fontSize: 12, color: '#6b7280' }}>Main sorting &amp; cold storage facility</p>
+                        </div>
+                    </Popup>
+                </Marker>
+
+                {/* ── Selected truck marker ───────────────────────────── */}
+                {truckData?.lat && (
+                    <CircleMarker
+                        center={[truckData.lat, truckData.lng]}
+                        radius={14}
+                        pathOptions={{
+                            fillColor: '#0ea5e9',
+                            color: 'white',
+                            weight: 3,
+                            fillOpacity: 0.95,
+                        }}
+                    >
+                        <Tooltip direction="top" offset={[0, -16]} sticky>
+                            <span className="font-semibold">🚛 {truckData.driver}</span>
+                        </Tooltip>
+                        <Popup>
+                            <div style={{ minWidth: 160 }}>
+                                <p style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>🚛 {truckData.driver}</p>
+                                <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{truckData.truck} · {truckData.type}</p>
+                                <p style={{ fontSize: 12, color: '#6b7280' }}>
+                                    Cap: {(truckData.capacity).toLocaleString()} kg
+                                </p>
+                            </div>
+                        </Popup>
+                    </CircleMarker>
                 )}
 
             </MapContainer>
+
+            {/* ── Floating Legend (bottom-right) ──────────────────────── */}
+            <div style={{
+                position: 'absolute',
+                bottom: 24,
+                right: 12,
+                zIndex: 1000,
+                background: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 12,
+                padding: '10px 14px',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+                minWidth: 170,
+            }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    Route Status
+                </p>
+                {LEGEND_ITEMS.map(item => (
+                    <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                        <span style={{
+                            display: 'inline-block',
+                            width: 12, height: 12,
+                            borderRadius: '50%',
+                            background: item.color,
+                            flexShrink: 0,
+                            border: '2px solid white',
+                            boxShadow: `0 0 0 1px ${item.color}66`,
+                        }} />
+                        <span style={{ fontSize: 11, color: '#374151', fontWeight: 500 }}>{item.label}</span>
+                    </div>
+                ))}
+            </div>
+
         </div>
     );
 };

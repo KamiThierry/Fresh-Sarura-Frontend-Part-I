@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     Search, Filter, Download, Plus, MoreHorizontal,
     Package, DollarSign, Layers,
-    Leaf, ArrowRight, Printer
+    Leaf, ArrowRight, Printer, Clock
 } from 'lucide-react';
 import LogIntakeModal from '../components/LogIntakeModal';
 import QCSortingModal from '../components/QCSortingModal';
@@ -19,6 +19,9 @@ const InventoryManagement = () => {
 
     // Selected Item States
     const [selectedIntakeId, setSelectedIntakeId] = useState('');
+
+    // Stock tab filter
+    const [produceFilter, setProduceFilter] = useState<string>('all');
 
     const summaryStats = [
         { label: 'Total Stock', value: '14.2 Tons', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -37,11 +40,13 @@ const InventoryManagement = () => {
     ];
 
     // Tab 2: Inventory (Stock)
+    // daysInStorage = days this batch has been sitting in the warehouse
+    // shelfLifeDays = total recommended shelf life for this produce (days remaining = shelfLifeDays - daysInStorage)
     const inventoryItems = [
-        { id: 'STK-AVO-26', produce: 'Avocados (Hass)', grade: 'A', weight: '4,200 kg', location: 'Cold Room A', temp: '4.2°C', status: 'Available', freshness: 95 },
-        { id: 'STK-AVO-27', produce: 'Avocados (Hass)', grade: 'B', weight: '1,500 kg', location: 'Cold Room B', temp: '4.5°C', status: 'Reserved', freshness: 88 },
-        { id: 'STK-CHI-12', produce: 'Bird Eye Chili', grade: 'A', weight: '600 kg', location: 'Ambient', temp: '18°C', status: 'Available', freshness: 92 },
-        { id: 'STK-MAN-05', produce: 'Mangoes (Apple)', grade: 'A', weight: '2,100 kg', location: 'Cold Room A', temp: '5.0°C', status: 'Allocated', freshness: 75 },
+        { id: 'STK-AVO-26', produce: 'Avocados (Hass)', grade: 'A', weight: '4,200 kg', location: 'Cold Room A', temp: '4.2°C', status: 'Available', daysInStorage: 3, shelfLifeDays: 18 },
+        { id: 'STK-AVO-27', produce: 'Avocados (Hass)', grade: 'A', weight: '1,500 kg', location: 'Cold Room B', temp: '4.5°C', status: 'Reserved', daysInStorage: 9, shelfLifeDays: 18 },
+        { id: 'STK-CHI-12', produce: 'Bird Eye Chili', grade: 'A', weight: '600 kg', location: 'Ambient', temp: '18°C', status: 'Available', daysInStorage: 2, shelfLifeDays: 10 },
+        { id: 'STK-MAN-05', produce: 'Mangoes (Apple)', grade: 'A', weight: '2,100 kg', location: 'Cold Room A', temp: '5.0°C', status: 'Allocated', daysInStorage: 6, shelfLifeDays: 7 },
     ];
 
     // Tab 3: Export Batches
@@ -172,9 +177,24 @@ const InventoryManagement = () => {
                                     className="pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
-                            <button className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500">
-                                <Filter size={16} />
-                            </button>
+                            {activeTab === 'active_inventory' && (
+                                <div className="relative">
+                                    <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    <select
+                                        value={produceFilter}
+                                        onChange={(e) => setProduceFilter(e.target.value)}
+                                        className="pl-8 pr-8 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                                    >
+                                        <option value="all">All Produce</option>
+                                        {[...new Set(inventoryItems.map(i => i.produce))].map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                    </select>
+                                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                        <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -238,13 +258,13 @@ const InventoryManagement = () => {
                                     <th className="px-6 py-4">Available Weight</th>
                                     <th className="px-6 py-4">Location</th>
                                     <th className="px-6 py-4">Avg Temp</th>
-                                    <th className="px-6 py-4">Freshness</th>
+                                    <th className="px-6 py-4">Shelf Life</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {inventoryItems.map((item) => (
+                                {inventoryItems.filter(item => produceFilter === 'all' || item.produce === produceFilter).map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.produce}</td>
@@ -258,17 +278,37 @@ const InventoryManagement = () => {
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.location}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.temp}</td>
                                         <td className="px-6 py-4">
-                                            <div className="flex gap-1" title={`${item.freshness}% Freshness`}>
-                                                {[1, 2, 3, 4, 5].map((dot) => (
-                                                    <div
-                                                        key={dot}
-                                                        className={`w-2 h-2 rounded-full ${(item.freshness / 20) >= dot
-                                                            ? 'bg-green-500'
-                                                            : 'bg-gray-200 dark:bg-gray-700'
-                                                            }`}
-                                                    />
-                                                ))}
-                                            </div>
+                                            {(() => {
+                                                const daysLeft = item.shelfLifeDays - item.daysInStorage;
+                                                const isUrgent = daysLeft <= 2;
+                                                const isWarning = daysLeft <= 5 && daysLeft > 2;
+                                                const urgencyLabel = daysLeft <= 0
+                                                    ? 'Expiring today!'
+                                                    : daysLeft === 1
+                                                        ? '1 day left — URGENT'
+                                                        : `${daysLeft} days left`;
+                                                const urgencyColor = isUrgent
+                                                    ? 'text-red-600 dark:text-red-400'
+                                                    : isWarning
+                                                        ? 'text-amber-600 dark:text-amber-400'
+                                                        : 'text-emerald-600 dark:text-emerald-400';
+                                                const bgColor = isUrgent
+                                                    ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40'
+                                                    : isWarning
+                                                        ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40'
+                                                        : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40';
+                                                return (
+                                                    <div className={`inline-flex flex-col px-2.5 py-1.5 rounded-lg ${bgColor}`}>
+                                                        <span className={`text-xs font-bold ${urgencyColor} flex items-center gap-1`}>
+                                                            <Clock size={10} />
+                                                            {urgencyLabel}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400 mt-0.5">
+                                                            In storage: {item.daysInStorage}d / {item.shelfLifeDays}d
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${item.status === 'Available' ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
