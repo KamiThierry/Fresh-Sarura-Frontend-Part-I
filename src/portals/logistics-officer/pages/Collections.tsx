@@ -323,36 +323,97 @@ const Collections = () => {
                     </div>
                 </div>
 
-                {/* Bottom Section: Interactive Map */}
-                <div className="shrink-0 mt-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+                {/* ── Bottom Section: Legend (1/4) + Map (3/4) ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 shrink-0 mt-6">
 
-                    {/* Card header */}
-                    <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
-                        <div className="flex items-start gap-2">
-                            <MapIcon size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                            <div>
-                                <h2 className="text-[17px] font-bold text-gray-900 dark:text-white">
-                                    Active Collection Zones &amp; Routes
-                                </h2>
-                                <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed max-w-lg">
-                                    Circle size represents the total harvest weight, color indicates the current collection status. Click on any marker to view specific farm and driver details.
-                                </p>
+                    {/* Legend card */}
+                    <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col gap-6">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <MapIcon size={15} className="text-blue-500 flex-shrink-0" />
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Route Status</h3>
+                            </div>
+                            <p className="text-xs text-gray-400 leading-relaxed">
+                                Colour indicates collection urgency. Size represents harvest weight.
+                            </p>
+                        </div>
+
+                        {/* Status colour key */}
+                        <div className="space-y-3">
+                            {[
+                                { color: '#22c55e', label: 'Harvest Ready', sub: 'Collected within 24h' },
+                                { color: '#f59e0b', label: 'En Route', sub: 'Driver dispatched' },
+                                { color: '#ef4444', label: 'Pickup Delayed', sub: 'Overdue collection' },
+                                { color: '#2563eb', label: 'Main Packhouse', sub: 'Kigali HQ' },
+                            ].map(({ color, label, sub }) => (
+                                <div key={label} className="flex items-start gap-3">
+                                    <span
+                                        className="mt-0.5 w-3.5 h-3.5 rounded-full flex-shrink-0"
+                                        style={{ background: color, boxShadow: `0 0 0 2px white, 0 0 0 3.5px ${color}66` }}
+                                    />
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">{label}</p>
+                                        <p className="text-[11px] text-gray-400 leading-tight mt-0.5">{sub}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="border-t border-gray-100 dark:border-gray-700" />
+
+                        {/* Size key */}
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Circle = Harvest Weight</p>
+                            <div className="flex items-end gap-5">
+                                {[{ r: 10, label: '500 kg' }, { r: 18, label: '2,500 kg' }, { r: 26, label: '5,000 kg' }].map(({ r, label }) => (
+                                    <div key={label} className="flex flex-col items-center gap-1.5">
+                                        <span className="block rounded-full" style={{
+                                            width: r * 2, height: r * 2,
+                                            background: '#22c55e',
+                                            border: '2px solid white',
+                                            boxShadow: '0 0 0 1.5px #22c55e88',
+                                            opacity: 0.85,
+                                        }} />
+                                        <span className="text-[10px] text-gray-400 text-center leading-tight">{label}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0 ml-4 mt-0.5">
-                            Live View
-                        </span>
+
+                        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-0.5">Active Zones</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{HARVEST_DEMAND.length}</p>
+                        </div>
                     </div>
 
-                    {/* Map */}
-                    <div className="h-[420px] w-full relative">
-                        <RoutePreviewMap
-                            selectedFarms={selectedFarms}
-                            selectedTruck={selectedTruck}
-                            allFarms={dispatchMode === 'farm' ? HARVEST_DEMAND : AIRPORT_TRANSFERS}
-                            allTrucks={FLEET_SUPPLY}
-                        />
+                    {/* Map card */}
+                    <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+                        <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+                            <div className="flex items-start gap-2">
+                                <MapIcon size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <h2 className="text-[17px] font-bold text-gray-900 dark:text-white">
+                                        Active Collection Zones &amp; Routes
+                                    </h2>
+                                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed max-w-lg">
+                                        Click on any marker to view specific farm and driver details.
+                                    </p>
+                                </div>
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full flex-shrink-0 ml-4 mt-0.5">
+                                Live View
+                            </span>
+                        </div>
+                        <div className="flex-1 min-h-0 min-h-[420px]">
+                            <RoutePreviewMap
+                                selectedFarms={selectedFarms}
+                                selectedTruck={selectedTruck}
+                                allFarms={dispatchMode === 'farm' ? HARVEST_DEMAND : AIRPORT_TRANSFERS}
+                                allTrucks={FLEET_SUPPLY}
+                            />
+                        </div>
                     </div>
+
                 </div>
 
 

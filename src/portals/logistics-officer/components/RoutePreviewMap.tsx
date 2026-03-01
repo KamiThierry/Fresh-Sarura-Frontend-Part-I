@@ -213,39 +213,6 @@ const RoutePreviewMap = ({ selectedFarms, selectedTruck, allFarms, allTrucks }: 
 
             </MapContainer>
 
-            {/* ── Floating Legend (bottom-right) ──────────────────────── */}
-            <div style={{
-                position: 'absolute',
-                bottom: 24,
-                right: 12,
-                zIndex: 1000,
-                background: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: 12,
-                padding: '10px 14px',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-                minWidth: 170,
-            }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                    Route Status
-                </p>
-                {LEGEND_ITEMS.map(item => (
-                    <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                        <span style={{
-                            display: 'inline-block',
-                            width: 12, height: 12,
-                            borderRadius: '50%',
-                            background: item.color,
-                            flexShrink: 0,
-                            border: '2px solid white',
-                            boxShadow: `0 0 0 1px ${item.color}66`,
-                        }} />
-                        <span style={{ fontSize: 11, color: '#374151', fontWeight: 500 }}>{item.label}</span>
-                    </div>
-                ))}
-            </div>
-
         </div>
     );
 };
