@@ -23,14 +23,7 @@ const InventoryManagement = () => {
     // Stock tab filter
     const [produceFilter, setProduceFilter] = useState<string>('all');
 
-    const summaryStats = [
-        { label: 'Total Stock', value: '14.2 Tons', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-        { label: 'Raw Intake (Today)', value: '1,550 kg', icon: Leaf, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-        { label: 'Value in Stock', value: '$28,900', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-        { label: 'Active Exports', value: '3 Batches', icon: Layers, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' }
-    ];
-
-    // --- MOCK DATA ---
+    // --- DERIVED / FILTERED DATA ---
 
     // Tab 1: Intake (Receiving)
     const intakeItems = [
@@ -40,8 +33,6 @@ const InventoryManagement = () => {
     ];
 
     // Tab 2: Inventory (Stock)
-    // daysInStorage = days this batch has been sitting in the warehouse
-    // shelfLifeDays = total recommended shelf life for this produce (days remaining = shelfLifeDays - daysInStorage)
     const inventoryItems = [
         { id: 'STK-AVO-26', produce: 'Avocados (Hass)', grade: 'A', weight: '4,200 kg', location: 'Cold Room A', temp: '4.2°C', status: 'Available', daysInStorage: 3, shelfLifeDays: 18 },
         { id: 'STK-AVO-27', produce: 'Avocados (Hass)', grade: 'A', weight: '1,500 kg', location: 'Cold Room B', temp: '4.5°C', status: 'Reserved', daysInStorage: 9, shelfLifeDays: 18 },
@@ -61,6 +52,43 @@ const InventoryManagement = () => {
         { id: 'ACT-002', time: '10:30 AM', type: 'QC Inspection', description: 'Graded Intake #INT-2026-001', impact: '+ 1,200kg Stock', impactType: 'positive', user: 'Sarah M. (QC)' },
         { id: 'ACT-003', time: '09:15 AM', type: 'Intake Logged', description: 'Received Raw Beans from Kinvest', impact: '+ 1,250kg Raw', impactType: 'positive', user: 'Gate Clerk' },
         { id: 'ACT-004', time: 'Yesterday', type: 'Export Batch', description: 'Allocated stock to Order #ORD-005', impact: '- 500kg Stock', impactType: 'negative', user: 'System (Auto)' },
+    ];
+
+    // Weight parser helper
+    const parseKg = (w: string) => parseFloat(w.replace(/,/g, '').replace(' kg', ''));
+
+    // Filtered inventory for stock tab
+    const filteredInventory = produceFilter === 'all'
+        ? inventoryItems
+        : inventoryItems.filter(i => i.produce.toLowerCase().includes(produceFilter.toLowerCase()));
+
+    // Filtered intake for today's intake (respects same produce filter)
+    const filteredIntake = produceFilter === 'all'
+        ? intakeItems
+        : intakeItems.filter(i => i.produce.toLowerCase().includes(produceFilter.toLowerCase()));
+
+    // Stats — reactive to produceFilter
+    const totalStockKg = filteredInventory.reduce((sum, i) => sum + parseKg(i.weight), 0);
+    const totalStockTons = (totalStockKg / 1000).toFixed(1);
+    const intakeTodayKg = filteredIntake
+        .filter(i => i.arrival.startsWith('Today'))
+        .reduce((sum, i) => sum + parseKg(i.weight), 0);
+    // Simple mock price per kg per produce
+    const PRICE_PER_KG: Record<string, number> = { 'Avocados (Hass)': 2.5, 'Bird Eye Chili': 3.0, 'Mangoes (Apple)': 1.8 };
+    const totalValue = filteredInventory.reduce((sum, i) => {
+        const price = PRICE_PER_KG[i.produce] ?? 2.0;
+        return sum + parseKg(i.weight) * price;
+    }, 0);
+    const activeExports = exportBatches.filter(b =>
+        produceFilter === 'all' ||
+        b.composition.toLowerCase().includes(produceFilter.toLowerCase().replace(' (hass)', '').replace(' apple)', '').replace('bird eye ', ''))
+    ).length;
+
+    const summaryStats = [
+        { label: 'Total Stock', value: `${totalStockTons} Tons`, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+        { label: 'Raw Intake (Today)', value: `${intakeTodayKg.toLocaleString()} kg`, icon: Leaf, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
+        { label: 'Value in Stock', value: `$${Math.round(totalValue / 100) * 100 < 1000 ? Math.round(totalValue) : (totalValue / 1000).toFixed(1) + 'K'}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
+        { label: 'Active Exports', value: `${activeExports} Batches`, icon: Layers, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     ];
 
     // --- HANDLERS ---

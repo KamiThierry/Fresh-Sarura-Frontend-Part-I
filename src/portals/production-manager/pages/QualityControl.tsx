@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
     CheckCircle, AlertOctagon, ShieldCheck, Activity, Calendar,
-    MoreHorizontal, FileText, ChevronRight, AlertTriangle, ClipboardCheck, Search, Filter
+    ClipboardCheck, Search
 } from 'lucide-react';
 import ScheduleInspectionModal from '../components/ScheduleInspectionModal';
 
@@ -12,41 +12,45 @@ interface QualityControlProps {
 const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [gradeFilter, setGradeFilter] = useState('all');
+
+    // Mock Data for Inspection Log
+    const inspections = [
+        { id: 'INS-001', date: 'Jan 23', batch: 'GF-208', product: 'Habanero', inspector: 'Sarah M.', grade: 'A', notes: 'Perfect quality', status: 'Passed' },
+        { id: 'INS-002', date: 'Jan 23', batch: 'GF-204', product: 'Mangoes', inspector: 'John D.', grade: 'Rejected', notes: 'Chemical Residue Detected', status: 'Rejected', alert: true },
+        { id: 'INS-003', date: 'Jan 22', batch: 'GF-202', product: 'Chili', inspector: 'Sarah M.', grade: 'B', notes: 'Minor shape irregularity', status: 'Passed' },
+        { id: 'INS-004', date: 'Jan 22', batch: 'GF-201', product: 'French Beans', inspector: 'David K.', grade: 'A', notes: '-', status: 'Passed' },
+    ];
+
+    // Filtered inspections — drives both the table AND the stat cards
+    const filteredInspections = inspections.filter(i => {
+        const matchesSearch = searchQuery === '' ||
+            i.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.batch.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.inspector.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesGrade = gradeFilter === 'all' || i.grade === gradeFilter;
+        return matchesSearch && matchesGrade;
+    });
+
+    // Derived stats from filtered inspections
+    const passCount = filteredInspections.filter(i => i.status === 'Passed').length;
+    const passRate = filteredInspections.length > 0 ? ((passCount / filteredInspections.length) * 100).toFixed(1) : '0.0';
+    const criticalCount = filteredInspections.filter(i => i.status === 'Rejected').length;
+    const certCompliance = filteredInspections.length > 0
+        ? ((filteredInspections.filter(i => i.grade !== 'Rejected').length / filteredInspections.length) * 100).toFixed(0)
+        : '0';
+    // Most common defect from notes (simple frequency count)
+    const defectWords = filteredInspections
+        .filter(i => i.notes !== '-')
+        .flatMap(i => i.notes.split(' ').slice(0, 1));
+    const topDefect = defectWords.length > 0 ? defectWords[0] : 'None';
 
     const summaryStats = [
-        {
-            label: 'Pass Rate',
-            value: '94.2%',
-            icon: CheckCircle,
-            color: 'text-green-600',
-            bg: 'bg-green-50 dark:bg-green-900/20',
-            alert: false
-        },
-        {
-            label: 'Critical Defects',
-            value: '3 Active',
-            icon: AlertOctagon,
-            color: 'text-red-600',
-            bg: 'bg-red-50 dark:bg-red-900/20',
-            alert: true
-        },
-        {
-            label: 'Compliance',
-            value: '98% Certified',
-            icon: ShieldCheck,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50 dark:bg-blue-900/20',
-            alert: false
-        },
-        {
-            label: 'Top Defect',
-            value: 'Bruising',
-            sub: '(Avocado)',
-            icon: Activity,
-            color: 'text-orange-600',
-            bg: 'bg-orange-50 dark:bg-orange-900/20',
-            alert: false
-        }
+        { label: 'Pass Rate', value: `${passRate}%`, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20', alert: false },
+        { label: 'Critical Defects', value: `${criticalCount} Active`, icon: AlertOctagon, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', alert: criticalCount > 0 },
+        { label: 'Compliance', value: `${certCompliance}% Cert.`, icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', alert: false },
+        { label: 'Top Defect', value: topDefect, icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20', alert: false },
     ];
 
     // Mock Data for Dashboard
@@ -64,13 +68,6 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
         { name: 'Robert / Almond', score: 60, status: 'Needs Attention', trend: 'down', alert: true },
     ];
 
-    // Mock Data for Inspection Log
-    const inspections = [
-        { id: 'INS-001', date: 'Jan 23', batch: 'GF-208', product: 'Habanero', inspector: 'Sarah M.', grade: 'A', notes: 'Perfect quality', status: 'Passed' },
-        { id: 'INS-002', date: 'Jan 23', batch: 'GF-204', product: 'Mangoes', inspector: 'John D.', grade: 'Rejected', notes: 'Chemical Residue Detected', status: 'Rejected', alert: true },
-        { id: 'INS-003', date: 'Jan 22', batch: 'GF-202', product: 'Chili', inspector: 'Sarah M.', grade: 'B', notes: 'Minor shape irregularity', status: 'Passed' },
-        { id: 'INS-004', date: 'Jan 22', batch: 'GF-201', product: 'French Beans', inspector: 'David K.', grade: 'A', notes: '-', status: 'Passed' },
-    ];
 
 
     const handleScheduleSubmit = (inspection: any) => {
@@ -114,7 +111,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                 <div className={`text-2xl font-bold mt-1 ${stat.alert ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                                     {stat.value}
                                 </div>
-                                {stat.sub && <p className="text-xs text-gray-400 mt-0.5">{stat.sub}</p>}
+
                             </div>
                             <div className={`p-3 rounded-lg ${stat.bg}`}>
                                 <stat.icon className={stat.color} size={24} />
@@ -212,6 +209,37 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                 {/* TAB 2: INSPECTION LOG */}
                 {activeTab === 'log' && (
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        {/* Search + Grade filter bar */}
+                        <div className="flex items-center gap-3 p-4 border-b border-gray-100 dark:border-gray-700">
+                            <div className="relative flex-1 max-w-xs">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Search product, batch, inspector…"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+                            <select
+                                value={gradeFilter}
+                                onChange={e => setGradeFilter(e.target.value)}
+                                className="px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            >
+                                <option value="all">All Grades</option>
+                                <option value="A">Grade A</option>
+                                <option value="B">Grade B</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            {(searchQuery || gradeFilter !== 'all') && (
+                                <button
+                                    onClick={() => { setSearchQuery(''); setGradeFilter('all'); }}
+                                    className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -224,7 +252,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {inspections.map((item) => (
+                                {filteredInspections.length > 0 ? filteredInspections.map((item) => (
                                     <tr key={item.id} className={item.alert ? 'bg-red-50/50 dark:bg-red-900/10' : ''}>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
@@ -254,7 +282,13 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                             <button className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">View Report</button>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400 italic">
+                                            No inspections match your filter.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

@@ -1,10 +1,26 @@
-import { useState } from 'react';
-import { Search, MapPin, User, Calendar, ShieldCheck, Box, Thermometer, Plane, Anchor, Download, ArrowDown, ExternalLink, AlertTriangle, FileText, CheckCircle, XCircle, Clock, Printer, FileCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, XCircle as XCircleIcon, ShieldCheck, Box, Thermometer, Plane, Download, ExternalLink, AlertTriangle, CheckCircle, XCircle, Clock, Printer, FileCheck, User } from 'lucide-react';
 
 const Traceability = () => {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'tracer' | 'compliance'>('tracer');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchActive, setSearchActive] = useState(false);
+    const [certFilter, setCertFilter] = useState<{ farmerName: string; certLabel: string } | null>(null);
+
+    // Read URL search params on mount / when URL changes
+    useEffect(() => {
+        const farmerId = searchParams.get('farmerId');
+        const farmerName = searchParams.get('farmerName');
+        const docType = searchParams.get('docType');
+        const certLabel = searchParams.get('certLabel');
+        if (farmerId && docType === 'Certification') {
+            setActiveTab('compliance');
+            setCertFilter({ farmerName: farmerName ?? '', certLabel: certLabel ?? '' });
+        }
+    }, [searchParams]);
 
     // Mock Data for "B-2026-001"
     const mockData = {
@@ -70,22 +86,33 @@ const Traceability = () => {
         ]
     };
 
-    // Mock Data for Compliance Manager
+    // Full certificate dataset — covers all farmers + packhouse
+    const allCertificates = [
+        { farmerId: 1, entity: 'Farmer: Jean Claude', type: 'GlobalG.A.P.', id: 'GGN-10001', status: 'Active', expiry: '2026-10-12' },
+        { farmerId: 1, entity: 'Farmer: Jean Claude', type: 'Organic RW', id: 'ORG-10001', status: 'Active', expiry: '2027-01-15' },
+        { farmerId: 2, entity: 'Farmer: Kirehe Co-op', type: 'GlobalG.A.P.', id: 'GGN-20001', status: 'Active', expiry: '2026-09-30' },
+        { farmerId: 2, entity: 'Farmer: Kirehe Co-op', type: 'Fair Trade', id: 'FT-20002', status: 'Active', expiry: '2026-11-01' },
+        { farmerId: 2, entity: 'Farmer: Kirehe Co-op', type: 'Rainforest Alliance', id: 'RA-20003', status: 'Expiring', expiry: '2026-03-10' },
+        { farmerId: 3, entity: 'Farmer: Marie Claire', type: 'Organic RW', id: 'ORG-30001', status: 'Expiring', expiry: '2026-02-10' },
+        { farmerId: 4, entity: 'Farmer: Bugesera Outgrowers', type: 'GlobalG.A.P.', id: 'GGN-40001', status: 'Active', expiry: '2026-08-20' },
+        { farmerId: 5, entity: 'Farmer: Robert / Almond', type: 'GlobalG.A.P.', id: 'GGN-50001', status: 'Pending', expiry: '-' },
+        { farmerId: 5, entity: 'Farmer: Robert / Almond', type: 'Organic RW', id: 'ORG-50002', status: 'Active', expiry: '2027-03-01' },
+        { farmerId: 6, entity: 'Farmer: Rusizi Organic', type: 'GlobalG.A.P.', id: 'GGN-60001', status: 'Active', expiry: '2026-12-31' },
+        { farmerId: 6, entity: 'Farmer: Rusizi Organic', type: 'Organic RW', id: 'ORG-60002', status: 'Active', expiry: '2027-06-15' },
+        { farmerId: 6, entity: 'Farmer: Rusizi Organic', type: 'ISO 22000', id: 'ISO-60003', status: 'Active', expiry: '2027-09-01' },
+        { farmerId: 0, entity: 'Packhouse: Kigali Central', type: 'SMETA', id: 'ZC-98765', status: 'Active', expiry: '2025-12-01' },
+        { farmerId: 0, entity: 'Company: Fresh Sarura Ltd', type: 'NAEB Export License', id: 'NAEB-2026', status: 'Active', expiry: '2026-06-30' },
+    ];
+
     const complianceData = {
         alerts: [
-            { id: 1, message: "2 Farmer Certificates expiring this week (Jean-Claude, Marie)", type: "critical" },
-            { id: 2, message: "Packhouse Hygiene Audit due in 5 days", type: "warning" }
-        ],
-        certificates: [
-            { entity: "Farmer: Jean-Claude", type: "GlobalG.A.P", id: "GGN-12345", status: "Active", expiry: "2026-10-12" },
-            { entity: "Packhouse: Kigali Central", type: "SMETA", id: "ZC-98765", status: "Active", expiry: "2025-12-01" },
-            { entity: "Farmer: Marie", type: "Organic", id: "ORG-555", status: "Expiring", expiry: "2026-02-10" },
-            { entity: "Farmer: Bosco", type: "RWB S-Mark", id: "RWB-999", status: "Pending", expiry: "-" },
+            { id: 1, message: '2 Farmer Certificates expiring soon (Kirehe Co-op — Rainforest Alliance, Marie Claire — Organic RW)', type: 'critical' },
+            { id: 2, message: 'Packhouse Hygiene Audit due in 5 days', type: 'warning' },
         ],
         permits: [
-            { name: "NAEB Export License 2026", renewal: "2026-06-30", status: "Active" },
-            { name: "Phytosanitary Import Permit (EU)", renewal: "2026-03-15", status: "Active" }
-        ]
+            { name: 'NAEB Export License 2026', renewal: '2026-06-30', status: 'Active' },
+            { name: 'Phytosanitary Import Permit (EU)', renewal: '2026-03-15', status: 'Active' },
+        ],
     };
 
     const handleSearch = (e: React.FormEvent) => {
@@ -289,8 +316,29 @@ const Traceability = () => {
                                     <h3 className="font-bold text-gray-900 dark:text-white">Certification Matrix</h3>
                                     <p className="text-xs text-gray-500">Monitor active certificates across the supply chain.</p>
                                 </div>
-                                <button className="text-sm text-blue-600 font-semibold hover:underline">View All</button>
+                                <button
+                                    className="text-sm text-blue-600 font-semibold hover:underline"
+                                    onClick={() => { setCertFilter(null); navigate('/traceability'); }}
+                                >
+                                    {certFilter ? 'Clear Filter' : 'View All'}
+                                </button>
                             </div>
+
+                            {/* Active filter bubble */}
+                            {certFilter && (
+                                <div className="px-6 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800 flex items-center gap-3">
+                                    <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                                        Filtered: <strong>{certFilter.farmerName}</strong>{certFilter.certLabel ? ` — ${certFilter.certLabel}` : ''}
+                                    </span>
+                                    <button
+                                        onClick={() => { setCertFilter(null); navigate('/traceability'); }}
+                                        className="ml-auto flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                                    >
+                                        <XCircleIcon size={14} /> Clear
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
                                     <thead className="text-xs text-gray-400 uppercase bg-gray-50 dark:bg-gray-700/50">
@@ -303,15 +351,20 @@ const Traceability = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                        {complianceData.certificates.map((cert, idx) => (
+                                        {(certFilter
+                                            ? allCertificates.filter(c =>
+                                                c.entity.toLowerCase().includes(certFilter.farmerName.toLowerCase())
+                                            )
+                                            : allCertificates
+                                        ).map((cert, idx) => (
                                             <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                                 <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{cert.entity}</td>
                                                 <td className="px-6 py-4">{cert.type}</td>
                                                 <td className="px-6 py-4 font-mono text-gray-500">{cert.id}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${cert.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                        cert.status === 'Expiring' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                            'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                            cert.status === 'Expiring' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                                                         }`}>
                                                         {cert.status}
                                                     </span>

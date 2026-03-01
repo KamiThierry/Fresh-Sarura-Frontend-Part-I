@@ -1,282 +1,312 @@
 import { useState } from 'react';
-import { X, Edit2, Trash2, User, Phone, Mail, MapPin, Leaf, Box, Calendar } from 'lucide-react';
-import { Farmer } from '../types';
-import { createClient } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Pencil, ShieldOff, Phone, Mail, MapPin, Leaf, Ruler, Star, BadgeCheck, Sprout, PackageCheck, Plus } from 'lucide-react';
+import AddCertificateModal from './AddCertificateModal';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+interface Farmer {
+  id: number;
+  name: string;
+  location: string;
+  crop: string;
+  size: string;
+  status: 'Active' | 'Inactive' | 'Auditing';
+  grade: string;
+  nationalId: string;
+  phone: string;
+  email: string;
+  address: string;
+}
 
 interface FarmerProfileProps {
   farmer: Farmer;
-  onClose: () => void;
-  onUpdate: () => void;
-  onDelete: () => void;
+  onBack: () => void;
 }
 
-const FarmerProfile = ({ farmer, onClose, onUpdate, onDelete }: FarmerProfileProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [editData, setEditData] = useState(farmer);
+const CROP_CYCLES: Record<number, { block: string; crop: string; planted: string; estYield: string; daysLeft: number }[]> = {
+  1: [{ block: 'Block A', crop: 'French Beans', planted: '15 Jan 2026', estYield: '500 kg', daysLeft: 22 }],
+  2: [
+    { block: 'Block A', crop: 'Avocados (Hass)', planted: '01 Nov 2025', estYield: '12,000 kg', daysLeft: 60 },
+    { block: 'Block B', crop: 'Avocados (Fuerte)', planted: '10 Nov 2025', estYield: '8,500 kg', daysLeft: 70 },
+  ],
+  3: [],
+  4: [{ block: 'Plots 1-3', crop: "Chili Peppers (Bird's Eye)", planted: '20 Jan 2026', estYield: '2,800 kg', daysLeft: 35 }],
+  5: [{ block: 'Main Field', crop: 'Mangoes (Kent)', planted: '10 Sep 2025', estYield: '1,200 kg', daysLeft: 14 }],
+  6: [
+    { block: 'Block A', crop: 'Kale', planted: '05 Feb 2026', estYield: '400 kg', daysLeft: 18 },
+    { block: 'Block B', crop: 'Spinach', planted: '12 Feb 2026', estYield: '300 kg', daysLeft: 25 },
+  ],
+};
 
-  const handleUpdate = async () => {
-    try {
-      const { error } = await supabase
-        .from('farmers')
-        .update({
-          full_name: editData.full_name,
-          cooperative_name: editData.cooperative_name || null,
-          district: editData.district,
-          sector: editData.sector,
-          produce_types: editData.produce_types,
-          farm_size_hectares: editData.farm_size_hectares,
-          production_capacity_tons: editData.production_capacity_tons,
-          phone: editData.phone,
-          email: editData.email || null,
-          status: editData.status,
-        })
-        .eq('id', farmer.id);
+const HARVESTS: Record<number, { date: string; qty: string; crop: string; grade: string }[]> = {
+  1: [
+    { date: '28 Feb 2026', qty: '460 kg', crop: 'French Beans', grade: 'A' },
+    { date: '15 Jan 2026', qty: '510 kg', crop: 'French Beans', grade: 'A' },
+    { date: '02 Dec 2025', qty: '430 kg', crop: 'French Beans', grade: 'B+' },
+  ],
+  2: [
+    { date: '20 Feb 2026', qty: '3,200 kg', crop: 'Avocados (Hass)', grade: 'A' },
+    { date: '10 Jan 2026', qty: '4,100 kg', crop: 'Avocados (Hass)', grade: 'A' },
+    { date: '25 Nov 2025', qty: '2,900 kg', crop: 'Avocados (Fuerte)', grade: 'A' },
+  ],
+  3: [
+    { date: '01 Oct 2025', qty: '180 kg', crop: 'Passion Fruit', grade: 'B' },
+    { date: '15 Aug 2025', qty: '200 kg', crop: 'Passion Fruit', grade: 'B+' },
+    { date: '01 Jun 2025', qty: '160 kg', crop: 'Passion Fruit', grade: 'B' },
+  ],
+  4: [
+    { date: '22 Feb 2026', qty: '950 kg', crop: 'Chili Peppers', grade: 'A' },
+    { date: '10 Jan 2026', qty: '870 kg', crop: 'Chili Peppers', grade: 'A' },
+    { date: '05 Dec 2025', qty: '1,020 kg', crop: 'Chili Peppers', grade: 'A' },
+  ],
+  5: [
+    { date: '18 Feb 2026', qty: '380 kg', crop: 'Mangoes', grade: 'A' },
+    { date: '30 Dec 2025', qty: '420 kg', crop: 'Mangoes', grade: 'B+' },
+    { date: '10 Nov 2025', qty: '310 kg', crop: 'Mangoes', grade: 'A' },
+  ],
+  6: [
+    { date: '25 Feb 2026', qty: '620 kg', crop: 'Mixed Veg', grade: 'A' },
+    { date: '12 Jan 2026', qty: '580 kg', crop: 'Mixed Veg', grade: 'A' },
+    { date: '28 Nov 2025', qty: '700 kg', crop: 'Mixed Veg', grade: 'A' },
+  ],
+};
 
-      if (error) throw error;
+const CERTS: Record<number, string[]> = {
+  1: ['GlobalG.A.P.', 'Organic RW'],
+  2: ['GlobalG.A.P.', 'Fair Trade', 'Rainforest Alliance'],
+  3: ['Organic RW'],
+  4: ['GlobalG.A.P.'],
+  5: ['GlobalG.A.P.', 'Organic RW'],
+  6: ['GlobalG.A.P.', 'Organic RW', 'ISO 22000'],
+};
 
-      onUpdate();
-      setIsEditing(false);
-    } catch (error: any) {
-      alert('Error updating farmer: ' + error.message);
-    }
-  };
+const STATUS_STYLE: Record<string, string> = {
+  Active: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+  Inactive: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  Auditing: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+};
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this farmer? This action cannot be undone.')) {
-      return;
-    }
+const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5 flex-shrink-0">{icon}</div>
+    <div>
+      <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-0.5">{label}</p>
+      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{value}</div>
+    </div>
+  </div>
+);
 
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase.from('farmers').delete().eq('id', farmer.id);
+const FarmerProfile = ({ farmer, onBack }: FarmerProfileProps) => {
+  const navigate = useNavigate();
+  const [isAddCertOpen, setIsAddCertOpen] = useState(false);
+  const cycles = CROP_CYCLES[farmer.id] ?? [];
+  const harvests = HARVESTS[farmer.id] ?? [];
+  const certs = CERTS[farmer.id] ?? [];
 
-      if (error) throw error;
-
-      onDelete();
-    } catch (error: any) {
-      alert('Error deleting farmer: ' + error.message);
-      setIsDeleting(false);
-    }
+  const handleCertClick = (certLabel: string) => {
+    const params = new URLSearchParams({
+      farmerId: String(farmer.id),
+      farmerName: farmer.name,
+      docType: 'Certification',
+      certLabel,
+    });
+    navigate(`/traceability?${params.toString()}`);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-white/10">
+    <div className="space-y-6 animate-fade-in">
 
-        {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              {farmer.photo_url ? (
-                <img src={farmer.photo_url} alt={farmer.full_name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <User className="text-white" size={32} strokeWidth={2} />
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editData.full_name}
-                    onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
-                    className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-3 py-1 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
-                ) : (
-                  farmer.full_name
-                )}
-              </h2>
-              <p className="text-white/80 text-sm mt-1">
-                {farmer.cooperative_name || 'Independent Farmer'}
-              </p>
-            </div>
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium"
+      >
+        <ArrowLeft size={16} />
+        Back to Farmer Directory
+      </button>
+
+      {/* Header card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl font-black text-green-600 dark:text-green-400">
+              {farmer.name.charAt(0)}
+            </span>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-all">
-            <X className="text-white" size={24} />
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{farmer.name}</h1>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLE[farmer.status]}`}>
+                {farmer.status}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+              <MapPin size={12} /> {farmer.location}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Pencil size={15} /> Edit Profile
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-800 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <ShieldOff size={15} /> Suspend Account
           </button>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Contact Information */}
-          <div>
-            <h3 className="text-sm font-semibold text-[#2E7D32] mb-3 flex items-center gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <Phone size={16} />
-              Contact Information
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Phone</p>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    value={editData.phone}
-                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                    className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-[#222222]">{farmer.phone}</p>
-                )}
-              </div>
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Email</p>
-                {isEditing ? (
-                  <input
-                    type="email"
-                    value={editData.email || ''}
-                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                    className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                  />
-                ) : (
-                  <p className="text-sm font-medium text-[#222222]">{farmer.email || 'Not provided'}</p>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* 3-column info grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Location */}
-          <div>
-            <h3 className="text-sm font-semibold text-[#2E7D32] mb-3 flex items-center gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <MapPin size={16} />
-              Location
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">District</p>
-                <p className="text-sm font-medium text-[#222222]">{farmer.district}</p>
-              </div>
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Sector</p>
-                <p className="text-sm font-medium text-[#222222]">{farmer.sector}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Produce Information */}
-          <div>
-            <h3 className="text-sm font-semibold text-[#2E7D32] mb-3 flex items-center gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <Leaf size={16} />
-              Produce Information
-            </h3>
-            <div className="bg-[#F9FCFA] p-4 rounded-lg mb-4">
-              <p className="text-xs text-[#6B7280] mb-2">Produce Types</p>
-              <div className="flex flex-wrap gap-2">
-                {farmer.produce_types.map((produce) => (
-                  <span
-                    key={produce}
-                    className="px-3 py-1 bg-[#E9F7EF] text-[#2E7D32] rounded-full text-xs font-medium"
-                  >
-                    {produce}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Farm Size</p>
-                <p className="text-sm font-medium text-[#222222]">{farmer.farm_size_hectares} hectares</p>
-              </div>
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Production Capacity</p>
-                <p className="text-sm font-medium text-[#222222]">{farmer.production_capacity_tons} tons/season</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Status & Dates */}
-          <div>
-            <h3 className="text-sm font-semibold text-[#2E7D32] mb-3 flex items-center gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              <Calendar size={16} />
-              Record Information
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Status</p>
-                {isEditing ? (
-                  <select
-                    value={editData.status}
-                    onChange={(e) => setEditData({ ...editData, status: e.target.value as 'active' | 'inactive' })}
-                    className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                ) : (
-                  <span
-                    className={`inline-flex items-center gap-1 text-sm font-medium ${farmer.status === 'active' ? 'text-[#4CAF50]' : 'text-gray-500'
-                      }`}
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${farmer.status === 'active' ? 'bg-[#4CAF50]' : 'bg-gray-400'
-                        }`}
-                    ></span>
-                    {farmer.status === 'active' ? 'Active' : 'Inactive'}
-                  </span>
-                )}
-              </div>
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Registered</p>
-                <p className="text-sm font-medium text-[#222222]">
-                  {new Date(farmer.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="bg-[#F9FCFA] p-4 rounded-lg">
-                <p className="text-xs text-[#6B7280] mb-1">Last Updated</p>
-                <p className="text-sm font-medium text-[#222222]">
-                  {new Date(farmer.updated_at).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Identity & Contact */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Identity &amp; Contact</h3>
+          <InfoRow icon={<BadgeCheck size={15} className="text-blue-500" />} label="National ID"
+            value={<span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">{farmer.nationalId}</span>} />
+          <InfoRow icon={<Phone size={15} className="text-green-500" />} label="Phone" value={farmer.phone} />
+          <InfoRow icon={<Mail size={15} className="text-purple-500" />} label="Email" value={<span className="text-blue-600 dark:text-blue-400">{farmer.email}</span>} />
         </div>
 
-        {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-gray-50 p-6 flex gap-3 border-t border-gray-200">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleUpdate}
-                className="flex-1 px-4 py-3 bg-[#2E7D32] text-white rounded-lg hover:bg-[#1B5E20] transition-all font-medium text-sm"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => {
-                  setEditData(farmer);
-                  setIsEditing(false);
-                }}
-                className="px-6 py-3 bg-white border-2 border-gray-300 text-[#37474F] rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
-              >
-                Cancel
-              </button>
-            </>
+        {/* Farm Specifications */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Farm Specifications</h3>
+          <InfoRow icon={<MapPin size={15} className="text-orange-500" />} label="Physical Address"
+            value={<span className="text-xs leading-relaxed">{farmer.address}</span>} />
+          <InfoRow icon={<Leaf size={15} className="text-green-500" />} label="Main Crop" value={farmer.crop} />
+          <InfoRow icon={<Ruler size={15} className="text-gray-500" />} label="Land Size" value={farmer.size} />
+        </div>
+
+        {/* Performance */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Performance</h3>
+          <InfoRow
+            icon={<Star size={15} className="text-yellow-400 fill-yellow-400" />}
+            label="Overall Rating"
+            value={<span className="font-bold">{farmer.grade !== '-' ? `⭐ ${farmer.grade}` : '—'}</span>}
+          />
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-gray-400 mb-2">Active Certifications</p>
+            {certs.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {certs.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => handleCertClick(c)}
+                    title={`View ${c} records in Compliance Matrix`}
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40 hover:shadow-sm transition-all cursor-pointer"
+                  >
+                    {c} ↗
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">No certifications on file</p>
+            )}
+          </div>
+
+          {/* Add New Certificate */}
+          <button
+            className="w-full mt-1 py-2 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 text-xs font-semibold hover:border-green-400 hover:text-green-600 dark:hover:border-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10 transition-all flex items-center justify-center gap-1.5"
+            onClick={() => setIsAddCertOpen(true)}
+          >
+            <Plus size={13} />
+            Add New Certificate
+          </button>
+        </div>
+      </div>
+
+      {/* Operational data — 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Active Crop Cycles */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <Sprout size={15} className="text-green-500" />
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Active Crop Cycles</h3>
+            <span className="ml-auto text-xs font-semibold px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full">
+              {cycles.length} active
+            </span>
+          </div>
+          {cycles.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-900/40 text-[11px] uppercase tracking-wider text-gray-400">
+                  <th className="px-5 py-2.5 text-left">Block</th>
+                  <th className="px-5 py-2.5 text-left">Crop</th>
+                  <th className="px-5 py-2.5 text-left">Planted</th>
+                  <th className="px-5 py-2.5 text-left">Est. Yield</th>
+                  <th className="px-5 py-2.5 text-left">Days Left</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {cycles.map((c, i) => (
+                  <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="px-5 py-3 font-medium text-gray-700 dark:text-gray-300">{c.block}</td>
+                    <td className="px-5 py-3 text-gray-600 dark:text-gray-400">{c.crop}</td>
+                    <td className="px-5 py-3 text-gray-500 text-xs">{c.planted}</td>
+                    <td className="px-5 py-3 font-semibold text-gray-800 dark:text-gray-200">{c.estYield}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.daysLeft <= 20 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'}`}>
+                        {c.daysLeft}d
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#2E7D32] text-white rounded-lg hover:bg-[#1B5E20] transition-all font-medium text-sm"
-              >
-                <Edit2 size={16} />
-                Edit Profile
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-medium text-sm flex items-center gap-2 disabled:opacity-50"
-              >
-                <Trash2 size={16} />
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </>
+            <p className="px-5 py-8 text-sm text-gray-400 text-center italic">No active crop cycles</p>
+          )}
+        </div>
+
+        {/* Recent Harvests */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <PackageCheck size={15} className="text-blue-500" />
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Recent Harvests</h3>
+            <span className="ml-auto text-xs text-gray-400">Last 3 deliveries</span>
+          </div>
+          {harvests.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-900/40 text-[11px] uppercase tracking-wider text-gray-400">
+                  <th className="px-5 py-2.5 text-left">Date</th>
+                  <th className="px-5 py-2.5 text-left">Crop</th>
+                  <th className="px-5 py-2.5 text-left">Quantity</th>
+                  <th className="px-5 py-2.5 text-left">Grade</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {harvests.slice(0, 3).map((h, i) => (
+                  <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">{h.date}</td>
+                    <td className="px-5 py-3 text-gray-600 dark:text-gray-400">{h.crop}</td>
+                    <td className="px-5 py-3 font-semibold text-gray-800 dark:text-gray-200">{h.qty}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${h.grade === 'A' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'}`}>
+                        {h.grade}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="px-5 py-8 text-sm text-gray-400 text-center italic">No harvest records found</p>
           )}
         </div>
       </div>
+
+      {/* Add Certificate Modal */}
+      <AddCertificateModal
+        isOpen={isAddCertOpen}
+        onClose={() => setIsAddCertOpen(false)}
+        defaultFarmer={farmer.name}
+        onSubmit={(data) => {
+          console.log('New certificate recorded:', data);
+          setIsAddCertOpen(false);
+        }}
+      />
+
     </div>
   );
 };

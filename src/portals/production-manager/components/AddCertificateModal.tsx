@@ -6,11 +6,12 @@ interface AddCertificateModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: any) => void;
+    defaultFarmer?: string;
 }
 
-const AddCertificateModal = ({ isOpen, onClose, onSubmit }: AddCertificateModalProps) => {
+const AddCertificateModal = ({ isOpen, onClose, onSubmit, defaultFarmer }: AddCertificateModalProps) => {
     const [formData, setFormData] = useState({
-        farmer: '',
+        farmer: defaultFarmer ?? '',
         type: 'GlobalG.A.P',
         auditNumber: '',
         validFrom: '',
@@ -75,19 +76,27 @@ const AddCertificateModal = ({ isOpen, onClose, onSubmit }: AddCertificateModalP
                         {/* Farmer Selection */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Farmer / Entity</label>
-                            <select
-                                required
-                                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
-                                value={formData.farmer}
-                                onChange={(e) => setFormData({ ...formData, farmer: e.target.value })}
-                            >
-                                <option value="" disabled>Select a farmer that passed audit...</option>
-                                <option value="Kinvest Farm">Kinvest Farm</option>
-                                <option value="Rusizi Co-op">Rusizi Co-op</option>
-                                <option value="Kirehe Co-op">Kirehe Co-op</option>
-                                <option value="Bugesera Farm">Bugesera Farm</option>
-                                <option value="Jean Claude">Jean Claude</option>
-                            </select>
+                            {defaultFarmer ? (
+                                <div className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                                    {defaultFarmer}
+                                </div>
+                            ) : (
+                                <select
+                                    required
+                                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
+                                    value={formData.farmer}
+                                    onChange={(e) => setFormData({ ...formData, farmer: e.target.value })}
+                                >
+                                    <option value="" disabled>Select a farmer that passed audit...</option>
+                                    <option value="Jean Claude">Jean Claude</option>
+                                    <option value="Kirehe Co-op">Kirehe Co-op</option>
+                                    <option value="Marie Claire">Marie Claire</option>
+                                    <option value="Bugesera Outgrowers">Bugesera Outgrowers</option>
+                                    <option value="Robert / Almond">Robert / Almond</option>
+                                    <option value="Rusizi Organic">Rusizi Organic</option>
+                                </select>
+                            )}
                         </div>
 
                         {/* Certificate Type */}
