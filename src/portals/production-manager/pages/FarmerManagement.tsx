@@ -4,6 +4,7 @@ import {
   Users, UserCheck, Map, FileWarning, Star, MapPin
 } from 'lucide-react';
 import FarmerRegistrationModal from '../components/FarmerRegistrationModal';
+import FarmNetworkMap from '../components/FarmNetworkMap';
 
 const FarmerManagement = () => {
   // State
@@ -79,6 +80,9 @@ const FarmerManagement = () => {
           </div>
         ))}
       </div>
+
+      {/* ── Geospatial Farm Map ── */}
+      <FarmNetworkMap />
 
       {/* Main Content: Filters & Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -169,10 +173,9 @@ const FarmerManagement = () => {
       <FarmerRegistrationModal
         isOpen={isRegistrationOpen}
         onClose={() => setIsRegistrationOpen(false)}
-        onSubmit={(data) => {
-          console.log('New Farmer:', data);
+        onFarmerAdded={() => {
+          console.log('Farmer added');
           setIsRegistrationOpen(false);
-          // Refresh logic would go here
         }}
       />
     </div>

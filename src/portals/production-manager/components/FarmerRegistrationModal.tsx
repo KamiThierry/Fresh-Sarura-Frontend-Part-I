@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Upload, User, MapPin } from 'lucide-react';
+import { X, Upload, User } from 'lucide-react';
 
 interface FarmerRegistrationModalProps {
     isOpen: boolean;
@@ -21,7 +21,6 @@ const FarmerRegistrationModal = ({ isOpen, onClose, onFarmerAdded }: FarmerRegis
         production_capacity_tons: '',
         phone: '',
         email: '',
-        location: { lat: '', lng: '' },
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -209,29 +208,6 @@ const FarmerRegistrationModal = ({ isOpen, onClose, onFarmerAdded }: FarmerRegis
                             </div>
                         </div>
 
-                        {/* GPS Location */}
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Location Coordinates
-                                </label>
-                                <button type="button" className="text-xs text-green-600 font-medium flex items-center gap-1 hover:text-green-700">
-                                    <MapPin size={12} /> Locate Me
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="Latitude"
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Longitude"
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                                />
-                            </div>
-                        </div>
 
                         {/* Phone */}
                         <div>

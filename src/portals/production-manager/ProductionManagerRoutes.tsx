@@ -56,9 +56,11 @@ const ProductionManagerRoutes = () => {
     };
 
     const handlePackingListSubmit = (data: any) => {
-        setIsPackingListOpen(false);
-        alert(`Packing List Created for ${data.client} on Flight ${data.flightNo}!`);
+        // Modal manages its own close — success state shows first,
+        // then user clicks Close or View Packing List Status.
+        console.log('Packing list data:', data);
     }
+
 
     return (
         <>
