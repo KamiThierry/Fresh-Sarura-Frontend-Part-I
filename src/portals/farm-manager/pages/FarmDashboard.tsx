@@ -116,7 +116,7 @@ const FarmDashboard = () => {
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
                             <Sprout className="h-8 w-8 text-green-100" />
-                            <h1 className="text-2xl md:text-3xl font-bold">Welcome, Farm Manager</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold">Welcome back, Thierry</h1>
                         </div>
                         <p className="text-green-100 text-base md:text-lg opacity-90 max-w-2xl">
                             Track your field operations, weather, and harvest targets.

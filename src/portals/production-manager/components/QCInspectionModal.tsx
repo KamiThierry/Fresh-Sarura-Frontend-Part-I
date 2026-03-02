@@ -125,8 +125,8 @@ const QCInspectionModal = ({ isOpen, onClose, onSubmit, intakeId, onConfirm }: Q
                         </h2>
                         <p className="text-xs text-gray-500 max-w-xs sm:max-w-md truncate">
                             {selectedIntake
-                                ? `Inspecting Intake #${selectedIntake.id} • ${selectedIntake.crop}`
-                                : 'Select a pending intake to begin inspection'}
+                                ? `Logging Intake #${selectedIntake.id} • ${selectedIntake.crop}`
+                                : 'Select a pending intake to log results'}
                         </p>
                     </div>
                     <button
@@ -166,7 +166,7 @@ const QCInspectionModal = ({ isOpen, onClose, onSubmit, intakeId, onConfirm }: Q
                                                 {intake.farmer}
                                             </div>
                                             <div className="text-xs text-purple-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                                Inspect <ArrowRight size={14} />
+                                                Log Results <ArrowRight size={14} />
                                             </div>
                                         </div>
                                     </div>
@@ -307,7 +307,7 @@ const QCInspectionModal = ({ isOpen, onClose, onSubmit, intakeId, onConfirm }: Q
                                 {/* Photo Evidence */}
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-                                        Photo Evidence
+                                        Attach Paper Log / Evidence
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button className="aspect-square rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center text-gray-400 hover:text-purple-500 hover:border-purple-500 hover:bg-white dark:hover:bg-gray-800 transition-all">

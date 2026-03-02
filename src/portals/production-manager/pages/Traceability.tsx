@@ -115,6 +115,10 @@ const Traceability = () => {
         ],
     };
 
+    const filteredAlerts = certFilter
+        ? complianceData.alerts.filter((a) => a.message.toLowerCase().includes(certFilter.farmerName.toLowerCase()))
+        : complianceData.alerts;
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchTerm.trim().toUpperCase() === 'B-2026-001') {
@@ -288,25 +292,27 @@ const Traceability = () => {
                 <div className="space-y-8 animate-fade-in">
 
                     {/* Section A: Expiry Alerts */}
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border-l-4 border-red-500 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                            <AlertTriangle size={120} />
-                        </div>
-                        <div className="relative z-10">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-                                <AlertTriangle className="text-red-500" size={20} />
-                                Critical ACTION REQUIRED
-                            </h3>
-                            <div className="space-y-3">
-                                {complianceData.alerts.map((alert) => (
-                                    <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg ${alert.type === 'critical' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200'}`}>
-                                        {alert.type === 'critical' ? <XCircle size={18} className="mt-0.5" /> : <Clock size={18} className="mt-0.5" />}
-                                        <span className="font-medium text-sm">{alert.message}</span>
-                                    </div>
-                                ))}
+                    {filteredAlerts.length > 0 && (
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border-l-4 border-red-500 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <AlertTriangle size={120} />
+                            </div>
+                            <div className="relative z-10">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                                    <AlertTriangle className="text-red-500" size={20} />
+                                    Critical ACTION REQUIRED
+                                </h3>
+                                <div className="space-y-3">
+                                    {filteredAlerts.map((alert) => (
+                                        <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg ${alert.type === 'critical' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200'}`}>
+                                            {alert.type === 'critical' ? <XCircle size={18} className="mt-0.5" /> : <Clock size={18} className="mt-0.5" />}
+                                            <span className="font-medium text-sm">{alert.message}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Section B: Certification Matrix */}
@@ -363,8 +369,8 @@ const Traceability = () => {
                                                 <td className="px-6 py-4 font-mono text-gray-500">{cert.id}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${cert.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                            cert.status === 'Expiring' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                        cert.status === 'Expiring' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                            'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                                                         }`}>
                                                         {cert.status}
                                                     </span>

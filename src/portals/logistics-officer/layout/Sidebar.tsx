@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Truck, Plane, Users, FileText, Settings, LogOut } from 'lucide-react';
+import { Home, Truck, Plane, Users, FileText, Settings, LogOut } from 'lucide-react';
 
 const Sidebar = () => {
     const navGroups = [
         {
-            title: 'Overview',
+            title: 'Main',
             items: [
-                { path: '/logistics/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                { path: '/logistics/dashboard', icon: Home, label: 'Home' },
             ]
         },
         {

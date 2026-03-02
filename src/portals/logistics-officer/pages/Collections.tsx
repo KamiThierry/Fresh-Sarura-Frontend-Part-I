@@ -31,6 +31,13 @@ const Collections = () => {
     const [selectedFarms, setSelectedFarms] = useState<string[]>([]);
     const [selectedTruck, setSelectedTruck] = useState<string | null>(null);
     const [dispatched, setDispatched] = useState(false);
+    const [regionFilter, setRegionFilter] = useState('All Regions');
+    const [vehicleFilter, setVehicleFilter] = useState('All Vehicles');
+
+    // Filter Logic
+    const filteredDemand = HARVEST_DEMAND.filter(item => regionFilter === 'All Regions' || item.farm.includes(regionFilter));
+    const filteredTransfers = AIRPORT_TRANSFERS.filter(item => regionFilter === 'All Regions' || item.farm.includes(regionFilter));
+    const filteredFleet = FLEET_SUPPLY.filter(item => vehicleFilter === 'All Vehicles' || item.status === vehicleFilter);
 
     // Auto-select Kayonza Farm when navigated from deep link
     useEffect(() => {
@@ -156,14 +163,31 @@ const Collections = () => {
                     <p className="text-gray-500 dark:text-gray-400">Assign ready harvests to available trucks.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <Filter size={16} />
-                        Filter: All Regions
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <Truck size={16} />
-                        Filter: All Vehicles
-                    </button>
+                    <div className="relative">
+                        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                        <select
+                            value={regionFilter}
+                            onChange={(e) => setRegionFilter(e.target.value)}
+                            className="appearance-none pl-9 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        >
+                            <option value="All Regions">Filter: All Regions</option>
+                            <option value="Simbi">Simbi</option>
+                            <option value="Kigali">Kigali</option>
+                            <option value="Kayonza">Kayonza</option>
+                        </select>
+                    </div>
+                    <div className="relative">
+                        <Truck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                        <select
+                            value={vehicleFilter}
+                            onChange={(e) => setVehicleFilter(e.target.value)}
+                            className="appearance-none pl-9 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        >
+                            <option value="All Vehicles">Filter: All Vehicles</option>
+                            <option value="Available">Available</option>
+                            <option value="On Trip">On Trip</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -196,13 +220,13 @@ const Collections = () => {
                                 </div>
                             </div>
                             <span className="bg-gray-200 dark:bg-gray-700 text-xs px-2 py-0.5 rounded-full text-gray-700 dark:text-gray-300">
-                                {dispatchMode === 'farm' ? HARVEST_DEMAND.length : AIRPORT_TRANSFERS.length}
+                                {dispatchMode === 'farm' ? filteredDemand.length : filteredTransfers.length}
                             </span>
                         </div>
 
                         <div className="space-y-3 overflow-y-auto pr-2 flex-1">
                             {dispatchMode === 'farm' ? (
-                                HARVEST_DEMAND.map(farm => (
+                                filteredDemand.map(farm => (
                                     <div
                                         key={farm.id}
                                         onClick={() => toggleFarmSelection(farm.id)}
@@ -234,7 +258,7 @@ const Collections = () => {
                                     </div>
                                 ))
                             ) : (
-                                AIRPORT_TRANSFERS.map(transfer => (
+                                filteredTransfers.map(transfer => (
                                     <div
                                         key={transfer.id}
                                         onClick={() => toggleFarmSelection(transfer.id)}
@@ -276,15 +300,15 @@ const Collections = () => {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                Available Trucks
+                                Fleet Supply
                                 <span className="bg-gray-200 dark:bg-gray-700 text-xs px-2 py-0.5 rounded-full text-gray-700 dark:text-gray-300">
-                                    {FLEET_SUPPLY.filter(t => t.status === 'Available').length}
+                                    {filteredFleet.length}
                                 </span>
                             </h2>
                         </div>
 
                         <div className="space-y-3 overflow-y-auto pr-2 flex-1">
-                            {FLEET_SUPPLY.map(truck => (
+                            {filteredFleet.map(truck => (
                                 <div
                                     key={truck.id}
                                     onClick={() => truck.status === 'Available' && setSelectedTruck(truck.id)}
@@ -408,8 +432,8 @@ const Collections = () => {
                             <RoutePreviewMap
                                 selectedFarms={selectedFarms}
                                 selectedTruck={selectedTruck}
-                                allFarms={dispatchMode === 'farm' ? HARVEST_DEMAND : AIRPORT_TRANSFERS}
-                                allTrucks={FLEET_SUPPLY}
+                                allFarms={dispatchMode === 'farm' ? filteredDemand : filteredTransfers}
+                                allTrucks={filteredFleet}
                             />
                         </div>
                     </div>

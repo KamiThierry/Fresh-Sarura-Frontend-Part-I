@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, Search, Bell } from 'lucide-react';
+import { Leaf, Search, Bell } from 'lucide-react';
 import ThemeToggle from '../../shared/component/ThemeToggle';
 import NotificationsModal from '../components/NotificationsModal';
 
@@ -10,12 +10,12 @@ const Header = () => {
         <>
             <header className="fixed top-[10px] left-[10px] right-[10px] h-16 bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border border-gray-200 dark:border-gray-700 z-40 px-6 flex items-center justify-between transition-colors duration-300 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">
-                        <Truck className="text-white" size={18} strokeWidth={2.5} />
+                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-900/20">
+                        <Leaf className="text-white" size={18} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h1 className="text-base font-bold text-blue-700 dark:text-blue-500 tracking-tight">Logistics Officer</h1>
-                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Operations</p>
+                        <h1 className="text-base font-bold text-green-700 dark:text-green-500 tracking-tight">Fresh Sarura</h1>
+                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Export & Farmer Hub</p>
                     </div>
                 </div>
 

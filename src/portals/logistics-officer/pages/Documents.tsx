@@ -123,22 +123,7 @@ const Documents = () => {
                         <option value="Packing List">Packing Lists</option>
                     </select>
 
-                    <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden md:block" />
 
-                    <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                        <button
-                            onClick={() => setDensity('comfortable')}
-                            className={`p-1.5 rounded-md transition-all ${density === 'comfortable' ? 'bg-white dark:bg-gray-600 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                        >
-                            <Filter size={16} />
-                        </button>
-                        <button
-                            onClick={() => setDensity('compact')}
-                            className={`p-1.5 rounded-md transition-all ${density === 'compact' ? 'bg-white dark:bg-gray-600 shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
-                        >
-                            <MoreVertical size={16} />
-                        </button>
-                    </div>
                 </div>
             </div>
 

@@ -10,19 +10,25 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6 animate-fade-in pb-20 md:pb-0">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Logistics Operations</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Overview of active collections, shipments, and fleet status.</p>
+            {/* Header / Welcome Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-700 to-green-600 p-8 text-white shadow-lg flex flex-col justify-between gap-4">
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <Truck className="h-8 w-8 text-green-100" />
+                                <h1 className="text-2xl md:text-3xl font-bold">Welcome back, Thierry</h1>
+                            </div>
+                            <p className="text-green-100 text-base md:text-lg opacity-90 max-w-2xl">
+                                Monitor active collections, export shipments, and fleet status in real-time.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <button
-                    onClick={() => setIsShipmentModalOpen(true)}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                >
-                    <Plus size={18} />
-                    New Shipment
-                </button>
+
+                {/* Decorators */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white opacity-10 blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 right-20 -mb-10 h-40 w-40 rounded-full bg-green-400 opacity-20 blur-2xl pointer-events-none"></div>
             </div>
 
             {/* Stats Cards */}

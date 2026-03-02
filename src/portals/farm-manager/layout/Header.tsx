@@ -9,8 +9,8 @@ const Header = () => {
                     <Leaf className="text-white" size={18} strokeWidth={2.5} />
                 </div>
                 <div>
-                    <h1 className="text-base font-bold text-green-700 dark:text-green-500 tracking-tight">Farm Manager</h1>
-                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Simbi Farm A</p>
+                    <h1 className="text-base font-bold text-green-700 dark:text-green-500 tracking-tight">Fresh Sarura</h1>
+                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Export & Farmer Hub</p>
                 </div>
             </div>
 

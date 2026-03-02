@@ -35,6 +35,31 @@ const getShipmentStatus = (shipment: any) => {
 const Shipments = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedShipment, setSelectedShipment] = useState<any>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    // Filtered data — drives table AND stat cards
+    const filteredShipments = MOCK_SHIPMENTS.filter(s => {
+        const status = getShipmentStatus(s);
+        const matchesSearch = searchTerm === '' ||
+            s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.flight.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.destination.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || status.label.toLowerCase() === statusFilter.toLowerCase();
+        return matchesSearch && matchesStatus;
+    });
+
+    // Derived stats from filtered shipments
+    const weeklyVolumeKg = filteredShipments.reduce((sum, s) => sum + s.weight, 0);
+    const activeCount = filteredShipments.filter(s => {
+        const st = getShipmentStatus(s);
+        return st.label === 'Scheduled' || st.label === 'In-Transit';
+    }).length;
+    const pendingDocsCount = filteredShipments.filter(s => {
+        const st = getShipmentStatus(s);
+        return st.label === 'Scheduled';
+    }).length;
 
     return (
         <div className="space-y-6 animate-fade-in pb-12">
@@ -59,7 +84,7 @@ const Shipments = () => {
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500 mb-1">Weekly Volume</p>
-                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">5,420 <span className="text-lg text-gray-400 font-normal">kg</span></h3>
+                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{weeklyVolumeKg.toLocaleString()} <span className="text-lg text-gray-400 font-normal">kg</span></h3>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
                         <Package size={24} />
@@ -68,7 +93,7 @@ const Shipments = () => {
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500 mb-1">Active Shipments</p>
-                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">3 <span className="text-lg text-gray-400 font-normal">Active</span></h3>
+                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{activeCount} <span className="text-lg text-gray-400 font-normal">Active</span></h3>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
                         <Plane size={24} />
@@ -77,7 +102,7 @@ const Shipments = () => {
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-gray-500 mb-1">Pending Docs</p>
-                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">2 <span className="text-lg text-gray-400 font-normal">To Review</span></h3>
+                        <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{pendingDocsCount} <span className="text-lg text-gray-400 font-normal">To Review</span></h3>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600">
                         <FileText size={24} />
@@ -92,13 +117,32 @@ const Shipments = () => {
                     <input
                         type="text"
                         placeholder="Search PL #, Flight or Client..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                     />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <Filter size={18} />
-                    Filter
-                </button>
+                <div className="relative">
+                    <Filter size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                        className="pl-9 pr-8 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
+                    >
+                        <option value="all">All Statuses</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="In-Transit">In-Transit</option>
+                        <option value="Arrived">Arrived</option>
+                    </select>
+                </div>
+                {(searchTerm || statusFilter !== 'all') && (
+                    <button
+                        onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium whitespace-nowrap"
+                    >
+                        Clear
+                    </button>
+                )}
             </div>
 
             {/* Main Table */}
@@ -118,7 +162,7 @@ const Shipments = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {MOCK_SHIPMENTS.map(shipment => {
+                            {filteredShipments.length > 0 ? filteredShipments.map(shipment => {
                                 const status = getShipmentStatus(shipment);
                                 return (
                                     <tr
@@ -164,7 +208,13 @@ const Shipments = () => {
                                         </td>
                                     </tr>
                                 );
-                            })}
+                            }) : (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        No shipments match your criteria
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

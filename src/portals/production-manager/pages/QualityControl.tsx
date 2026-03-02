@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-    CheckCircle, AlertOctagon, ShieldCheck, Activity, Calendar,
+    CheckCircle, AlertOctagon, ShieldCheck, Activity,
     ClipboardCheck, Search
 } from 'lucide-react';
 import ScheduleInspectionModal from '../components/ScheduleInspectionModal';
@@ -11,16 +11,15 @@ interface QualityControlProps {
 
 const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
     const [activeTab, setActiveTab] = useState('dashboard');
-    const [isScheduleOpen, setIsScheduleOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [gradeFilter, setGradeFilter] = useState('all');
 
     // Mock Data for Inspection Log
     const inspections = [
-        { id: 'INS-001', date: 'Jan 23', batch: 'GF-208', product: 'Habanero', inspector: 'Sarah M.', grade: 'A', notes: 'Perfect quality', status: 'Passed' },
-        { id: 'INS-002', date: 'Jan 23', batch: 'GF-204', product: 'Mangoes', inspector: 'John D.', grade: 'Rejected', notes: 'Chemical Residue Detected', status: 'Rejected', alert: true },
-        { id: 'INS-003', date: 'Jan 22', batch: 'GF-202', product: 'Chili', inspector: 'Sarah M.', grade: 'B', notes: 'Minor shape irregularity', status: 'Passed' },
-        { id: 'INS-004', date: 'Jan 22', batch: 'GF-201', product: 'French Beans', inspector: 'David K.', grade: 'A', notes: '-', status: 'Passed' },
+        { id: 'INS-001', date: 'Jan 23', batch: 'GF-208', product: 'Habanero', shift: 'Morning Team', grade: 'A', notes: 'Perfect quality', status: 'Passed' },
+        { id: 'INS-002', date: 'Jan 23', batch: 'GF-204', product: 'Mangoes', shift: 'Sorting Line A', grade: 'Rejected', notes: 'Chemical Residue Detected', status: 'Rejected', alert: true },
+        { id: 'INS-003', date: 'Jan 22', batch: 'GF-202', product: 'Chili', shift: 'Afternoon Team', grade: 'B', notes: 'Minor shape irregularity', status: 'Passed' },
+        { id: 'INS-004', date: 'Jan 22', batch: 'GF-201', product: 'French Beans', shift: 'Sorting Line B', grade: 'A', notes: '-', status: 'Passed' },
     ];
 
     // Filtered inspections — drives both the table AND the stat cards
@@ -28,7 +27,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
         const matchesSearch = searchQuery === '' ||
             i.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.batch.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            i.inspector.toLowerCase().includes(searchQuery.toLowerCase());
+            i.shift.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesGrade = gradeFilter === 'all' || i.grade === gradeFilter;
         return matchesSearch && matchesGrade;
     });
@@ -89,14 +88,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                     >
                         <ClipboardCheck size={18} />
-                        Perform Inspection
-                    </button>
-                    <button
-                        onClick={() => setIsScheduleOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 border border-blue-200 dark:border-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors"
-                    >
-                        <Calendar size={18} />
-                        Schedule Inspection
+                        Log Intake Results
                     </button>
                 </div>
             </div>
@@ -245,7 +237,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                 <tr className="bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     <th className="px-6 py-4">Date / ID</th>
                                     <th className="px-6 py-4">Product</th>
-                                    <th className="px-6 py-4">Inspector</th>
+                                    <th className="px-6 py-4">SHIFT</th>
                                     <th className="px-6 py-4">Score/Grade</th>
                                     <th className="px-6 py-4">Defect Notes</th>
                                     <th className="px-6 py-4 text-right">Action</th>
@@ -265,7 +257,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                             <span className="text-xs text-gray-500 block">Batch {item.batch}</span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                                            {item.inspector}
+                                            {item.shift}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${item.grade === 'A' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' :
@@ -294,13 +286,6 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                     </div>
                 )}
             </div>
-
-            {/* Schedule Inspection Modal */}
-            <ScheduleInspectionModal
-                isOpen={isScheduleOpen}
-                onClose={() => setIsScheduleOpen(false)}
-                onSubmit={handleScheduleSubmit}
-            />
         </div>
     );
 };

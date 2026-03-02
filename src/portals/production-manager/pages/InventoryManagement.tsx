@@ -7,6 +7,7 @@ import {
 import LogIntakeModal from '../components/LogIntakeModal';
 import QCSortingModal from '../components/QCSortingModal';
 import CreateExportBatchModal from '../components/CreateExportBatchModal';
+import BatchDetailModal from '../components/BatchDetailModal';
 
 const InventoryManagement = () => {
     // Tab State: 'intake' | 'inventory' | 'export'
@@ -16,12 +17,19 @@ const InventoryManagement = () => {
     const [isIntakeOpen, setIsIntakeOpen] = useState(false);
     const [isQCOpen, setIsQCOpen] = useState(false);
     const [isExportBatchOpen, setIsExportBatchOpen] = useState(false);
+    const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
     // Selected Item States
     const [selectedIntakeId, setSelectedIntakeId] = useState('');
+    const [selectedBatch, setSelectedBatch] = useState<any>(null);
+
+    // Action Menu State
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     // Stock tab filter
     const [produceFilter, setProduceFilter] = useState<string>('all');
+    // Global search
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     // --- DERIVED / FILTERED DATA ---
 
@@ -57,17 +65,34 @@ const InventoryManagement = () => {
     // Weight parser helper
     const parseKg = (w: string) => parseFloat(w.replace(/,/g, '').replace(' kg', ''));
 
+    const lowerSearch = searchTerm.toLowerCase();
+
     // Filtered inventory for stock tab
-    const filteredInventory = produceFilter === 'all'
-        ? inventoryItems
-        : inventoryItems.filter(i => i.produce.toLowerCase().includes(produceFilter.toLowerCase()));
+    const filteredInventory = inventoryItems.filter(i => {
+        const matchesProduce = produceFilter === 'all' || i.produce === produceFilter;
+        const matchesSearch = !searchTerm || i.id.toLowerCase().includes(lowerSearch) || i.produce.toLowerCase().includes(lowerSearch) || i.location.toLowerCase().includes(lowerSearch);
+        return matchesProduce && matchesSearch;
+    });
 
     // Filtered intake for today's intake (respects same produce filter)
-    const filteredIntake = produceFilter === 'all'
-        ? intakeItems
-        : intakeItems.filter(i => i.produce.toLowerCase().includes(produceFilter.toLowerCase()));
+    const filteredIntake = intakeItems.filter(i => {
+        const matchesProduce = produceFilter === 'all' || i.produce === produceFilter;
+        const matchesSearch = !searchTerm || i.id.toLowerCase().includes(lowerSearch) || i.farmer.toLowerCase().includes(lowerSearch) || i.produce.toLowerCase().includes(lowerSearch);
+        return matchesProduce && matchesSearch;
+    });
 
-    // Stats — reactive to produceFilter
+    const filteredExportBatches = exportBatches.filter(b => {
+        const matchesProduce = produceFilter === 'all' || b.composition.toLowerCase().includes(produceFilter.toLowerCase().replace(' (hass)', '').replace(' apple)', '').replace('bird eye ', ''));
+        const matchesSearch = !searchTerm || b.id.toLowerCase().includes(lowerSearch) || b.client.toLowerCase().includes(lowerSearch) || b.dest.toLowerCase().includes(lowerSearch) || b.composition.toLowerCase().includes(lowerSearch);
+        return matchesProduce && matchesSearch;
+    });
+
+    const filteredActivity = activityItems.filter(a => {
+        const matchesSearch = !searchTerm || a.type.toLowerCase().includes(lowerSearch) || a.description.toLowerCase().includes(lowerSearch) || a.user.toLowerCase().includes(lowerSearch);
+        return matchesSearch;
+    });
+
+    // Stats — reactive to produceFilter and searchTerm
     const totalStockKg = filteredInventory.reduce((sum, i) => sum + parseKg(i.weight), 0);
     const totalStockTons = (totalStockKg / 1000).toFixed(1);
     const intakeTodayKg = filteredIntake
@@ -79,10 +104,7 @@ const InventoryManagement = () => {
         const price = PRICE_PER_KG[i.produce] ?? 2.0;
         return sum + parseKg(i.weight) * price;
     }, 0);
-    const activeExports = exportBatches.filter(b =>
-        produceFilter === 'all' ||
-        b.composition.toLowerCase().includes(produceFilter.toLowerCase().replace(' (hass)', '').replace(' apple)', '').replace('bird eye ', ''))
-    ).length;
+    const activeExports = filteredExportBatches.length;
 
     const summaryStats = [
         { label: 'Total Stock', value: `${totalStockTons} Tons`, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -202,6 +224,8 @@ const InventoryManagement = () => {
                                 <input
                                     type="text"
                                     placeholder="Search..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
@@ -243,7 +267,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {intakeItems.map((item) => (
+                                {filteredIntake.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.arrival}</td>
@@ -259,12 +283,33 @@ const InventoryManagement = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             {item.status === 'Pending QC' && (
-                                                <button
-                                                    onClick={() => handlePerformQC(item.id)}
-                                                    className="inline-flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-xs font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                                >
-                                                    Perform QC <ArrowRight size={12} className="ml-1" />
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2 relative">
+                                                    <button
+                                                        onClick={() => handlePerformQC(item.id)}
+                                                        className="inline-flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-xs font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                                                    >
+                                                        Perform QC <ArrowRight size={12} className="ml-1" />
+                                                    </button>
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                                            onBlur={() => setTimeout(() => setOpenMenuId(null), 150)}
+                                                            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                        >
+                                                            <MoreHorizontal size={16} />
+                                                        </button>
+                                                        {openMenuId === item.id && (
+                                                            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden text-left">
+                                                                <button
+                                                                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium transition-colors"
+                                                                    onClick={() => setOpenMenuId(null)}
+                                                                >
+                                                                    Void Intake
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
@@ -292,7 +337,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {inventoryItems.filter(item => produceFilter === 'all' || item.produce === produceFilter).map((item) => (
+                                {filteredInventory.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.produce}</td>
@@ -347,9 +392,33 @@ const InventoryManagement = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                                                <MoreHorizontal size={18} />
-                                            </button>
+                                            <div className="relative inline-block text-left">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                                    onBlur={() => setTimeout(() => setOpenMenuId(null), 150)}
+                                                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                >
+                                                    <MoreHorizontal size={18} />
+                                                </button>
+                                                {openMenuId === item.id && (
+                                                    <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden text-left">
+                                                        <div className="p-1 gap-1 flex flex-col">
+                                                            <button
+                                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg font-medium transition-colors"
+                                                                onClick={() => setOpenMenuId(null)}
+                                                            >
+                                                                Adjust Stock
+                                                            </button>
+                                                            <button
+                                                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-colors"
+                                                                onClick={() => setOpenMenuId(null)}
+                                                            >
+                                                                Mark as Spoiled
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -373,7 +442,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {exportBatches.map((item) => (
+                                {filteredExportBatches.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4">
@@ -390,8 +459,14 @@ const InventoryManagement = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                                                <Printer size={16} /> Print Labels
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedBatch(item);
+                                                    setIsBatchModalOpen(true);
+                                                }}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-xs font-semibold rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                                            >
+                                                Manage Batch
                                             </button>
                                         </td>
                                     </tr>
@@ -411,6 +486,8 @@ const InventoryManagement = () => {
                                 <input
                                     type="text"
                                     placeholder="Search Activities..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-9 pr-4 py-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm"
                                 />
                             </div>
@@ -428,7 +505,7 @@ const InventoryManagement = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                    {activityItems.map((item) => (
+                                    {filteredActivity.map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                                                 {item.time}
@@ -491,6 +568,16 @@ const InventoryManagement = () => {
                     // Logic to create batch from Inventory
                     setActiveTab('export_batches'); // Switch to exports tab
                 }}
+            />
+
+            {/* Modal 4: Manage Batch Detail */}
+            <BatchDetailModal
+                isOpen={isBatchModalOpen}
+                onClose={() => {
+                    setIsBatchModalOpen(false);
+                    setTimeout(() => setSelectedBatch(null), 200);
+                }}
+                batch={selectedBatch}
             />
 
         </div>
