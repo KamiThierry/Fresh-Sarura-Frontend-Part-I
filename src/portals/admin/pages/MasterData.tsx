@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Database, Leaf, CheckCircle, Archive, Clock, Search, Plus, MoreHorizontal, MapPin, Home, Truck, Plane, Shield, AlertCircle, Award } from 'lucide-react';
+import { Database, Leaf, CheckCircle, Archive, Clock, Search, Plus, MoreHorizontal, MapPin, Home, Truck, Plane, Shield, AlertCircle, Award, Filter } from 'lucide-react';
+import AddCropModal from '../components/AddCropModal';
+import AddFacilityModal from '../components/AddFacilityModal';
+import AddStandardModal from '../components/AddStandardModal';
 
 const MOCK_CROPS = [
     { id: 'CROP-001', name: 'Avocados (Hass)', category: 'Fruit', baseUnit: 'Kilograms (kg)', status: 'Active' },
@@ -23,25 +26,46 @@ const MasterData = () => {
     const [activeTab, setActiveTab] = useState('crop_varieties');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredCrops = MOCK_CROPS.filter(crop =>
-        crop.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        crop.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [isAddCropOpen, setIsAddCropOpen] = useState(false);
+    const [isAddFacilityOpen, setIsAddFacilityOpen] = useState(false);
+    const [isAddStandardOpen, setIsAddStandardOpen] = useState(false);
 
-    const filteredLocations = MOCK_LOCATIONS.filter(loc =>
-        loc.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loc.district.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filters
+    const [cropCategoryFilter, setCropCategoryFilter] = useState('All Categories');
+    const [cropStatusFilter, setCropStatusFilter] = useState('All Statuses');
+    const [locTypeFilter, setLocTypeFilter] = useState('All Types');
+    const [locStatusFilter, setLocStatusFilter] = useState('All Statuses');
+    const [certReqFilter, setCertReqFilter] = useState('All Requirements');
+    const [certStatusFilter, setCertStatusFilter] = useState('All Statuses');
 
-    const filteredCerts = MOCK_CERTIFICATIONS.filter(cert =>
-        cert.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cert.issuingBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cert.requirement.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCrops = MOCK_CROPS.filter(crop => {
+        const matchesSearch = crop.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            crop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            crop.category.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = cropCategoryFilter === 'All Categories' || crop.category === cropCategoryFilter;
+        const matchesStatus = cropStatusFilter === 'All Statuses' || crop.status === cropStatusFilter;
+        return matchesSearch && matchesCategory && matchesStatus;
+    });
+
+    const filteredLocations = MOCK_LOCATIONS.filter(loc => {
+        const matchesSearch = loc.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            loc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            loc.district.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = locTypeFilter === 'All Types' || loc.type === locTypeFilter;
+        const matchesStatus = locStatusFilter === 'All Statuses' || loc.status === locStatusFilter;
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
+    const filteredCerts = MOCK_CERTIFICATIONS.filter(cert => {
+        const matchesSearch = cert.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cert.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cert.issuingBody.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cert.requirement.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesReq = certReqFilter === 'All Requirements' || cert.requirement === certReqFilter;
+        const matchesStatus = certStatusFilter === 'All Statuses' || cert.status === certStatusFilter;
+        return matchesSearch && matchesReq && matchesStatus;
+    });
 
     const kpiCards = [
         { label: 'Total Crops', value: filteredCrops.length.toString(), icon: Leaf, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
@@ -121,18 +145,49 @@ const MasterData = () => {
 
             {/* Search & Action Row */}
             {activeTab === 'crop_varieties' && (
-                <div className="flex justify-between items-center mb-4 gap-4">
-                    <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Q Search crops..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-3 flex-1 w-full">
+                        <div className="relative w-full max-w-sm">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Q Search crops..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+                        <div className="relative w-full md:w-auto">
+                            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <select
+                                value={cropCategoryFilter}
+                                onChange={(e) => setCropCategoryFilter(e.target.value)}
+                                className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                            >
+                                <option value="All Categories">All Categories</option>
+                                <option value="Fruit">Fruit</option>
+                                <option value="Vegetable">Vegetable</option>
+                            </select>
+                            <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </div>
+                        <div className="relative w-full md:w-auto">
+                            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <select
+                                value={cropStatusFilter}
+                                onChange={(e) => setCropStatusFilter(e.target.value)}
+                                className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                            >
+                                <option value="All Statuses">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                            <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </div>
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                    <button
+                        onClick={() => setIsAddCropOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                    >
                         <Plus size={16} />
                         Add Record
                     </button>
@@ -211,18 +266,50 @@ const MasterData = () => {
                     </div>
 
                     {/* Search & Action Row */}
-                    <div className="flex justify-between items-center mb-4 gap-4">
-                        <div className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Search facilities, districts..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 flex-1 w-full">
+                            <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Search facilities..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <div className="relative w-full md:w-auto">
+                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={locTypeFilter}
+                                    onChange={(e) => setLocTypeFilter(e.target.value)}
+                                    className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                                >
+                                    <option value="All Types">All Types</option>
+                                    <option value="Processing Hub">Processing Hub</option>
+                                    <option value="Consolidation">Consolidation</option>
+                                    <option value="Export Hub">Export Hub</option>
+                                </select>
+                                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                            <div className="relative w-full md:w-auto">
+                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={locStatusFilter}
+                                    onChange={(e) => setLocStatusFilter(e.target.value)}
+                                    className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                                >
+                                    <option value="All Statuses">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
                         </div>
-                        <button className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                        <button
+                            onClick={() => setIsAddFacilityOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                        >
                             <Plus size={16} />
                             Add Facility
                         </button>
@@ -302,18 +389,50 @@ const MasterData = () => {
                     </div>
 
                     {/* Search & Action Row */}
-                    <div className="flex justify-between items-center mb-4 gap-4">
-                        <div className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Search compliance standards..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 flex-1 w-full">
+                            <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Search compliance..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <div className="relative w-full md:w-auto">
+                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={certReqFilter}
+                                    onChange={(e) => setCertReqFilter(e.target.value)}
+                                    className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                                >
+                                    <option value="All Requirements">All Requirements</option>
+                                    <option value="Mandatory (EU)">Mandatory (EU)</option>
+                                    <option value="Mandatory (Local)">Mandatory (Local)</option>
+                                    <option value="Voluntary">Voluntary</option>
+                                </select>
+                                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                            <div className="relative w-full md:w-auto">
+                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <select
+                                    value={certStatusFilter}
+                                    onChange={(e) => setCertStatusFilter(e.target.value)}
+                                    className="w-full md:w-auto pl-8 pr-8 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer"
+                                >
+                                    <option value="All Statuses">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
                         </div>
-                        <button className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                        <button
+                            onClick={() => setIsAddStandardOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap"
+                        >
                             <Plus size={16} />
                             Add Standard
                         </button>
@@ -378,6 +497,20 @@ const MasterData = () => {
                     </div>
                 </>
             )}
+
+            {/* Modals */}
+            <AddCropModal
+                isOpen={isAddCropOpen}
+                onClose={() => setIsAddCropOpen(false)}
+            />
+            <AddFacilityModal
+                isOpen={isAddFacilityOpen}
+                onClose={() => setIsAddFacilityOpen(false)}
+            />
+            <AddStandardModal
+                isOpen={isAddStandardOpen}
+                onClose={() => setIsAddStandardOpen(false)}
+            />
         </div>
     );
 };
