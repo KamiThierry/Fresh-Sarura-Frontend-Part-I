@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
-    LayoutDashboard, Users, ShieldCheck, BarChart3,
-    Settings, LogOut, Building2, Bell,
+    LayoutDashboard, Users, ShieldAlert,
+    Settings, LogOut, Database
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -16,15 +16,13 @@ const Sidebar = () => {
             title: 'Management',
             items: [
                 { path: '/admin/users', icon: Users, label: 'User Management' },
-                { path: '/admin/roles', icon: ShieldCheck, label: 'Roles & Permissions' },
-                { path: '/admin/organisations', icon: Building2, label: 'Organisations' },
+                { path: '/admin/master-data', icon: Database, label: 'Master Data' },
             ],
         },
         {
-            title: 'Analytics',
+            title: 'Security',
             items: [
-                { path: '/admin/reports', icon: BarChart3, label: 'Reports & Analytics' },
-                { path: '/admin/notifications', icon: Bell, label: 'Notifications' },
+                { path: '/admin/event-logs', icon: ShieldAlert, label: 'Event Logs' },
             ],
         },
         {

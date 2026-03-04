@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, Search, Bell } from 'lucide-react';
+import { Leaf, Search, Bell } from 'lucide-react';
 import ThemeToggle from '../../shared/component/ThemeToggle';
 import NotificationsModal from '../components/NotificationsModal';
 
@@ -13,11 +13,11 @@ const Header = () => {
                 {/* Brand */}
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-900/20">
-                        <ShieldCheck className="text-white" size={18} strokeWidth={2.5} />
+                        <Leaf className="text-white" size={18} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h1 className="text-base font-bold text-green-700 dark:text-green-400 tracking-tight">Admin Portal</h1>
-                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">System Administration</p>
+                        <h1 className="text-base font-bold text-green-700 dark:text-green-400 tracking-tight">Fresh Sarura</h1>
+                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">Export & Farmer Hub</p>
                     </div>
                 </div>
 
@@ -27,7 +27,7 @@ const Header = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
                         <input
                             type="text"
-                            placeholder="Search users, roles, organisations..."
+                            placeholder="Search users, master data, system logs..."
                             className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 border border-transparent focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400/20 text-sm dark:text-gray-200 dark:placeholder-gray-400 transition-all"
                         />
                     </div>
