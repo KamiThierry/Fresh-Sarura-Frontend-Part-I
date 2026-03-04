@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Database, Leaf, CheckCircle, Archive, Clock, Search, Plus, MoreHorizontal, MapPin, Home, Truck, Plane, Shield, AlertCircle, Award, Filter } from 'lucide-react';
+import { Database, Leaf, CheckCircle, Archive, Clock, Search, Plus, Edit2, Trash2, MapPin, Home, Truck, Plane, Shield, AlertCircle, Award, Filter } from 'lucide-react';
 import AddCropModal from '../components/AddCropModal';
 import AddFacilityModal from '../components/AddFacilityModal';
 import AddStandardModal from '../components/AddStandardModal';
@@ -224,18 +224,19 @@ const MasterData = () => {
                                         </span>
                                     </td>
                                     <td className="px-5 py-4 text-right">
-                                        <div className="relative inline-block text-left group">
-                                            <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
-                                                <MoreHorizontal size={16} />
+                                        <div className="flex items-center justify-end gap-2 text-gray-400">
+                                            <button className="p-1.5 hover:text-green-600 hover:bg-green-50 dark:hover:text-green-400 dark:hover:bg-green-900/20 rounded-lg transition-colors group relative">
+                                                <Edit2 size={16} />
+                                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                    Edit
+                                                </span>
                                             </button>
-                                            <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                                                <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                    Edit Record
-                                                </button>
-                                                <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-t border-gray-100 dark:border-gray-700">
-                                                    Deactivate/Archive
-                                                </button>
-                                            </div>
+                                            <button className="p-1.5 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors group relative">
+                                                <Trash2 size={16} />
+                                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                    Delete
+                                                </span>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -346,18 +347,19 @@ const MasterData = () => {
                                             </span>
                                         </td>
                                         <td className="px-5 py-4 text-right">
-                                            <div className="relative inline-block text-left group">
-                                                <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
-                                                    <MoreHorizontal size={16} />
+                                            <div className="flex items-center justify-end gap-2 text-gray-400">
+                                                <button className="p-1.5 hover:text-green-600 hover:bg-green-50 dark:hover:text-green-400 dark:hover:bg-green-900/20 rounded-lg transition-colors group relative">
+                                                    <Edit2 size={16} />
+                                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                        Edit
+                                                    </span>
                                                 </button>
-                                                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                                                    <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                        Edit Record
-                                                    </button>
-                                                    <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-t border-gray-100 dark:border-gray-700">
-                                                        Deactivate/Archive
-                                                    </button>
-                                                </div>
+                                                <button className="p-1.5 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors group relative">
+                                                    <Trash2 size={16} />
+                                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                        Delete
+                                                    </span>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -476,18 +478,19 @@ const MasterData = () => {
                                             </span>
                                         </td>
                                         <td className="px-5 py-4 text-right">
-                                            <div className="relative inline-block text-left group">
-                                                <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
-                                                    <MoreHorizontal size={16} />
+                                            <div className="flex items-center justify-end gap-2 text-gray-400">
+                                                <button className="p-1.5 hover:text-green-600 hover:bg-green-50 dark:hover:text-green-400 dark:hover:bg-green-900/20 rounded-lg transition-colors group relative">
+                                                    <Edit2 size={16} />
+                                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                        Edit
+                                                    </span>
                                                 </button>
-                                                <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                                                    <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                        Edit Record
-                                                    </button>
-                                                    <button className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-t border-gray-100 dark:border-gray-700">
-                                                        Deactivate/Archive
-                                                    </button>
-                                                </div>
+                                                <button className="p-1.5 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors group relative">
+                                                    <Trash2 size={16} />
+                                                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                        Delete
+                                                    </span>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

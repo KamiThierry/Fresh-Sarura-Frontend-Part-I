@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Search, UserPlus, MoreHorizontal, Filter, CheckCircle, Clock, ShieldOff } from 'lucide-react';
+import { Users, Search, UserPlus, Edit2, Trash2, Filter, CheckCircle, Clock, ShieldOff } from 'lucide-react';
 import AddUserModal from '../components/AddUserModal';
 
 const MOCK_USERS = [
@@ -140,9 +140,20 @@ const UserManagement = () => {
                                     </span>
                                 </td>
                                 <td className="px-5 py-4 text-right">
-                                    <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 transition-colors">
-                                        <MoreHorizontal size={16} />
-                                    </button>
+                                    <div className="flex items-center justify-end gap-2 text-gray-400">
+                                        <button className="p-1.5 hover:text-green-600 hover:bg-green-50 dark:hover:text-green-400 dark:hover:bg-green-900/20 rounded-lg transition-colors group relative">
+                                            <Edit2 size={16} />
+                                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                Edit
+                                            </span>
+                                        </button>
+                                        <button className="p-1.5 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors group relative">
+                                            <Trash2 size={16} />
+                                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                                                Delete
+                                            </span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
