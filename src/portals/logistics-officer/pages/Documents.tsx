@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FileText, Search, Filter, Plus, Download, Printer, Eye, MoreVertical, CheckCircle, AlertCircle, Calendar, X } from 'lucide-react';
 import DocumentUploadModal from '../components/DocumentUploadModal';
+import Pagination from '../../shared/component/Pagination';
 
 // Mock Data
 const MOCK_DOCUMENTS = [
@@ -22,6 +23,8 @@ const Documents = () => {
     const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Reset filter if URL param changes (optional, but good for deep linking handling)
     useEffect(() => {
@@ -40,6 +43,9 @@ const Documents = () => {
             return matchesSearch && matchesType && matchesShipment;
         });
     }, [searchTerm, filterType, filterShipment]);
+
+    // Reset to page 1 whenever filters change
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, filterType, filterShipment]);
 
     const toggleSelection = (id: string) => {
         setSelectedDocs(prev =>
@@ -152,7 +158,7 @@ const Documents = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {filteredDocs.length > 0 ? (
-                                filteredDocs.map(doc => (
+                                filteredDocs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(doc => (
                                     <tr
                                         key={doc.id}
                                         className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group ${selectedDocs.includes(doc.id) ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
@@ -236,6 +242,7 @@ const Documents = () => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination currentPage={currentPage} totalItems={filteredDocs.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
             </div>
 
             {/* Bulk Action Bar (Floating Footer) */}

@@ -7,6 +7,7 @@ import {
 import FarmerRegistrationModal from '../components/FarmerRegistrationModal';
 import FarmNetworkMap from '../components/FarmNetworkMap';
 import FarmerProfile from '../components/FarmerProfile';
+import Pagination from '../../shared/component/Pagination';
 
 const FarmerManagement = () => {
   // State
@@ -15,6 +16,8 @@ const FarmerManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   // Mock Data for Directory
   const farmers = [
@@ -186,7 +189,7 @@ const FarmerManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {filteredFarmers.map((farmer) => (
+                  {filteredFarmers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((farmer) => (
                     <tr
                       key={farmer.id}
                       className="hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors cursor-pointer"
@@ -258,6 +261,7 @@ const FarmerManagement = () => {
                   ))}
                 </tbody>
               </table>
+              <Pagination currentPage={currentPage} totalItems={filteredFarmers.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
             </div>
           </div>
 

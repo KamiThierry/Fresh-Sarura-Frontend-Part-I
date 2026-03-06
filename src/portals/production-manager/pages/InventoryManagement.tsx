@@ -9,6 +9,7 @@ import LogIntakeModal from '../components/LogIntakeModal';
 import QCSortingModal from '../components/QCSortingModal';
 import CreateExportBatchModal from '../components/CreateExportBatchModal';
 import BatchDetailModal from '../components/BatchDetailModal';
+import Pagination from '../../shared/component/Pagination';
 
 const InventoryManagement = () => {
     // Tab State: 'intake' | 'inventory' | 'export'
@@ -32,6 +33,12 @@ const InventoryManagement = () => {
     const [produceFilter, setProduceFilter] = useState<string>('all');
     // Global search
     const [searchTerm, setSearchTerm] = useState<string>('');
+    // Pagination
+    const [intakePage, setIntakePage] = useState(1);
+    const [inventoryPage, setInventoryPage] = useState(1);
+    const [exportPage, setExportPage] = useState(1);
+    const [activityPage, setActivityPage] = useState(1);
+    const itemsPerPage = 3;
 
     // --- DERIVED / FILTERED DATA ---
 
@@ -311,7 +318,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {filteredIntake.map((item) => (
+                                {filteredIntake.slice((intakePage - 1) * itemsPerPage, intakePage * itemsPerPage).map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.arrival}</td>
@@ -360,6 +367,7 @@ const InventoryManagement = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={intakePage} totalItems={filteredIntake.length} itemsPerPage={itemsPerPage} onPageChange={setIntakePage} />
                     </div>
                 )}
 
@@ -381,7 +389,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {filteredInventory.map((item) => (
+                                {filteredInventory.slice((inventoryPage - 1) * itemsPerPage, inventoryPage * itemsPerPage).map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.produce}</td>
@@ -468,6 +476,7 @@ const InventoryManagement = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={inventoryPage} totalItems={filteredInventory.length} itemsPerPage={itemsPerPage} onPageChange={setInventoryPage} />
                     </div>
                 )}
 
@@ -486,7 +495,7 @@ const InventoryManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {filteredExportBatches.map((item) => (
+                                {filteredExportBatches.slice((exportPage - 1) * itemsPerPage, exportPage * itemsPerPage).map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
                                         <td className="px-6 py-4">
@@ -517,6 +526,7 @@ const InventoryManagement = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={exportPage} totalItems={filteredExportBatches.length} itemsPerPage={itemsPerPage} onPageChange={setExportPage} />
                     </div>
                 )}
 
@@ -549,7 +559,7 @@ const InventoryManagement = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                    {filteredActivity.map((item) => (
+                                    {filteredActivity.slice((activityPage - 1) * itemsPerPage, activityPage * itemsPerPage).map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                                                 {item.time}
@@ -580,6 +590,7 @@ const InventoryManagement = () => {
                                 </tbody>
                             </table>
                         </div>
+                        <Pagination currentPage={activityPage} totalItems={filteredActivity.length} itemsPerPage={itemsPerPage} onPageChange={setActivityPage} />
                     </div>
                 )}
             </div>

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, FileText, Calendar, Plane, Package, ArrowUpRight, Search, Filter } from 'lucide-react';
+import { Plus, FileText, Plane, Package, ArrowUpRight, Search, Filter } from 'lucide-react';
 import ShipmentBuilderModal from '../components/ShipmentBuilderModal';
 import ShipmentDetailsModal from '../components/ShipmentDetailsModal';
+import Pagination from '../../shared/component/Pagination';
 
 const MOCK_SHIPMENTS = [
     { id: 'PL-2024-001', date: 'Oct 24, 2023', flight: 'WB300', destination: 'LHR (London)', client: 'Tesco UK', boxes: 120, weight: 480, departureTime: '09:00', duration: '8h 30m', commodities: ['Avocados (Hass)', 'Fine Beans'] }, // Arrived
@@ -39,6 +40,8 @@ const Shipments = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchParams] = useSearchParams();
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Deep-link from dashboard: ?flight=WB300 pre-fills the search bar
     useEffect(() => {
@@ -170,7 +173,7 @@ const Shipments = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {filteredShipments.length > 0 ? filteredShipments.map(shipment => {
+                            {filteredShipments.length > 0 ? filteredShipments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(shipment => {
                                 const status = getShipmentStatus(shipment);
                                 return (
                                     <tr
@@ -226,6 +229,7 @@ const Shipments = () => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination currentPage={currentPage} totalItems={filteredShipments.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
             </div>
 
             {/* Modal */}

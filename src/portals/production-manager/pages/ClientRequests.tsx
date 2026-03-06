@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Pagination from '../../shared/component/Pagination';
 import {
     Search, X, CheckCircle, XCircle, Inbox,
     Info, User, Clock, Send
@@ -333,6 +334,8 @@ const ClientRequests = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
     const [toast, setToast] = useState<ToastState | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     useEffect(() => {
         if (!toast) return;
@@ -479,7 +482,7 @@ const ClientRequests = () => {
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                        {filtered.map(req => {
+                        {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(req => {
                             const cfg = STATUS_CONFIG[req.status];
                             return (
                                 <button
@@ -525,6 +528,7 @@ const ClientRequests = () => {
                         })}
                     </div>
                 )}
+                <Pagination currentPage={currentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
             </div>
 
             {/* Detail Modal */}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ShieldAlert, Search, Filter, Download, Activity, Lock, UserCheck, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
+import Pagination from '../../shared/component/Pagination';
 
 const MOCK_EVENTS = [
     { id: 'EVT-1048', timestamp: 'Mar 03, 10:15 AM', severity: 'CRITICAL', description: 'Multiple failed login attempts', actor: 'Unknown', ip: '197.243.22.10' },
@@ -13,6 +14,8 @@ const EventLogs = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [severityFilter, setSeverityFilter] = useState('All');
     const [isExportOpen, setIsExportOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     const filteredEvents = MOCK_EVENTS.filter(event => {
         const matchesSearch =
@@ -167,7 +170,7 @@ const EventLogs = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                        {filteredEvents.map(event => (
+                        {filteredEvents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(event => (
                             <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400 font-medium">
                                     {event.timestamp}
@@ -190,6 +193,7 @@ const EventLogs = () => {
                         ))}
                     </tbody>
                 </table>
+                <Pagination currentPage={currentPage} totalItems={filteredEvents.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
             </div>
         </div>
     );

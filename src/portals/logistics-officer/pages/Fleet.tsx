@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Users, Truck, Wrench, Search, Filter, Plus, Calendar, Phone, AlertTriangle, CheckCircle, MoreVertical, Eye } from 'lucide-react';
+import { Users, Truck, Wrench, Search, Filter, Plus, Calendar, Phone, MoreVertical, Eye } from 'lucide-react';
 import AddVehicleModal from '../components/AddVehicleModal';
 import LogMaintenanceModal from '../components/LogMaintenanceModal';
 import AddDriverModal from '../components/AddDriverModal';
 import AssignTruckModal from '../components/AssignTruckModal';
+import Pagination from '../../shared/component/Pagination';
 
 // Mock Data - Matches Dispatch Board Context
 const MOCK_VEHICLES = [
@@ -26,6 +27,9 @@ const Fleet = () => {
     const [activeTab, setActiveTab] = useState<'vehicles' | 'drivers'>('vehicles');
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
+    const [vehiclePage, setVehiclePage] = useState(1);
+    const [driverPage, setDriverPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Modal State
     const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
@@ -144,13 +148,13 @@ const Fleet = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
                         <button
-                            onClick={() => { setActiveTab('vehicles'); setFilterStatus('All'); }}
+                            onClick={() => { setActiveTab('vehicles'); setFilterStatus('All'); setVehiclePage(1); }}
                             className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'vehicles' ? 'bg-white dark:bg-gray-700 shadow-sm text-indigo-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                         >
                             <Truck size={16} /> Vehicles
                         </button>
                         <button
-                            onClick={() => { setActiveTab('drivers'); setFilterStatus('All'); }}
+                            onClick={() => { setActiveTab('drivers'); setFilterStatus('All'); setDriverPage(1); }}
                             className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'drivers' ? 'bg-white dark:bg-gray-700 shadow-sm text-indigo-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                         >
                             <Users size={16} /> Drivers
@@ -236,7 +240,7 @@ const Fleet = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {activeTab === 'vehicles' ? (
-                                    filteredVehicles.map(vehicle => (
+                                    filteredVehicles.slice((vehiclePage - 1) * itemsPerPage, vehiclePage * itemsPerPage).map(vehicle => (
                                         <tr key={vehicle.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                                             <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{vehicle.plate}</td>
                                             <td className="px-6 py-4">
@@ -283,7 +287,7 @@ const Fleet = () => {
                                         </tr>
                                     ))
                                 ) : (
-                                    filteredDrivers.map(driver => (
+                                    filteredDrivers.slice((driverPage - 1) * itemsPerPage, driverPage * itemsPerPage).map(driver => (
                                         <tr key={driver.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-gray-900 dark:text-white">{driver.name}</div>
@@ -334,6 +338,10 @@ const Fleet = () => {
                             </tbody>
                         </table>
                     </div>
+                    {activeTab === 'vehicles'
+                        ? <Pagination currentPage={vehiclePage} totalItems={filteredVehicles.length} itemsPerPage={itemsPerPage} onPageChange={setVehiclePage} />
+                        : <Pagination currentPage={driverPage} totalItems={filteredDrivers.length} itemsPerPage={itemsPerPage} onPageChange={setDriverPage} />
+                    }
                 </div>
             </div>
 

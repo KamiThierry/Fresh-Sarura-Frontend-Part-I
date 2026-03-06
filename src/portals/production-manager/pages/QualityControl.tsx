@@ -4,6 +4,7 @@ import {
     ClipboardCheck, Search
 } from 'lucide-react';
 import ScheduleInspectionModal from '../components/ScheduleInspectionModal';
+import Pagination from '../../shared/component/Pagination';
 
 interface QualityControlProps {
     onPerformInspection: () => void;
@@ -13,6 +14,8 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [searchQuery, setSearchQuery] = useState('');
     const [gradeFilter, setGradeFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Mock Data for Inspection Log
     const inspections = [
@@ -244,7 +247,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {filteredInspections.length > 0 ? filteredInspections.map((item) => (
+                                {filteredInspections.length > 0 ? filteredInspections.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item) => (
                                     <tr key={item.id} className={item.alert ? 'bg-red-50/50 dark:bg-red-900/10' : ''}>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
@@ -283,6 +286,7 @@ const QualityControl = ({ onPerformInspection }: QualityControlProps) => {
                                 )}
                             </tbody>
                         </table>
+                        <Pagination currentPage={currentPage} totalItems={filteredInspections.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
                     </div>
                 )}
             </div>

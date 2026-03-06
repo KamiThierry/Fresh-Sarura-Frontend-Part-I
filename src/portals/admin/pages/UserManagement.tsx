@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Users, Search, UserPlus, Edit2, Trash2, Filter, CheckCircle, Clock, ShieldOff } from 'lucide-react';
 import AddUserModal from '../components/AddUserModal';
+import Pagination from '../../shared/component/Pagination';
 
 const MOCK_USERS = [
     { id: 1, name: 'Alice Kamana', email: 'alice@sarura.rw', role: 'Admin', status: 'Active', avatar: 'AK' },
@@ -20,6 +21,8 @@ const UserManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All Statuses');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
 
     const filteredUsers = MOCK_USERS.filter(user => {
         const matchesSearch =
@@ -31,6 +34,8 @@ const UserManagement = () => {
 
         return matchesSearch && matchesStatus;
     });
+
+    const currentUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const summaryStats = [
         { label: 'Total Users', value: filteredUsers.length.toString(), icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -122,7 +127,7 @@ const UserManagement = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                        {filteredUsers.map(u => (
+                        {currentUsers.map(u => (
                             <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td className="px-5 py-4 flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-500 to-green-300 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
@@ -159,6 +164,12 @@ const UserManagement = () => {
                         ))}
                     </tbody>
                 </table>
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredUsers.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={(p) => setCurrentPage(p)}
+                />
             </div>
 
             {/* Modals */}

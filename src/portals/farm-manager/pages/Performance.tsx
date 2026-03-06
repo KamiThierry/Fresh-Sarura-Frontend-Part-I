@@ -3,9 +3,13 @@ import {
     TrendingUp, ShieldCheck, Clock, Package,
     CheckCircle2, XCircle, FileText, Camera
 } from 'lucide-react';
+import Pagination from '../../shared/component/Pagination';
 
 const Performance = () => {
     const [activeTab, setActiveTab] = useState<'harvests' | 'tasks'>('harvests');
+    const [harvestPage, setHarvestPage] = useState(1);
+    const [taskPage, setTaskPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Mock Data: Harvest Logs
     const HARVEST_LOGS = [
@@ -73,10 +77,10 @@ const Performance = () => {
                 {/* Tabs */}
                 <div className="flex border-b border-gray-100 dark:border-gray-700">
                     <button
-                        onClick={() => setActiveTab('harvests')}
+                        onClick={() => { setActiveTab('harvests'); setHarvestPage(1); }}
                         className={`flex-1 py-4 text-sm font-medium text-center transition-colors ${activeTab === 'harvests'
-                                ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50 dark:bg-green-900/10'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50 dark:bg-green-900/10'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
                         <span className="flex items-center justify-center gap-2">
@@ -84,10 +88,10 @@ const Performance = () => {
                         </span>
                     </button>
                     <button
-                        onClick={() => setActiveTab('tasks')}
+                        onClick={() => { setActiveTab('tasks'); setTaskPage(1); }}
                         className={`flex-1 py-4 text-sm font-medium text-center transition-colors ${activeTab === 'tasks'
-                                ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50 dark:bg-green-900/10'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50 dark:bg-green-900/10'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
                         <span className="flex items-center justify-center gap-2">
@@ -111,7 +115,7 @@ const Performance = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {HARVEST_LOGS.length > 0 ? (
-                                    HARVEST_LOGS.map((log) => (
+                                    HARVEST_LOGS.slice((harvestPage - 1) * itemsPerPage, harvestPage * itemsPerPage).map((log) => (
                                         <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">{log.date}</td>
                                             <td className="px-6 py-4">
@@ -124,8 +128,8 @@ const Performance = () => {
                                             <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-bold">{log.quantity}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${log.status === 'Accepted'
-                                                        ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                                                        : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                                                    ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                                                    : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                                                     }`}>
                                                     {log.status === 'Accepted' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                                                     {log.status}
@@ -143,6 +147,7 @@ const Performance = () => {
                                 )}
                             </tbody>
                         </table>
+                        <Pagination currentPage={harvestPage} totalItems={HARVEST_LOGS.length} itemsPerPage={itemsPerPage} onPageChange={setHarvestPage} />
                     </div>
                 )}
 
@@ -160,7 +165,7 @@ const Performance = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {TASK_HISTORY.map((task) => (
+                                {TASK_HISTORY.slice((taskPage - 1) * itemsPerPage, taskPage * itemsPerPage).map((task) => (
                                     <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{task.task}</td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{task.dueDate}</td>
@@ -175,8 +180,8 @@ const Performance = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${task.status === 'Compliant'
-                                                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                                                    : 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                                : 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                                                 }`}>
                                                 {task.status}
                                             </span>
@@ -185,6 +190,7 @@ const Performance = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={taskPage} totalItems={TASK_HISTORY.length} itemsPerPage={itemsPerPage} onPageChange={setTaskPage} />
                     </div>
                 )}
             </div>

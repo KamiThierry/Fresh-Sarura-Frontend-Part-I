@@ -3,6 +3,7 @@ import { Database, Leaf, CheckCircle, Archive, Clock, Search, Plus, Edit2, Trash
 import AddCropModal from '../components/AddCropModal';
 import AddFacilityModal from '../components/AddFacilityModal';
 import AddStandardModal from '../components/AddStandardModal';
+import Pagination from '../../shared/component/Pagination';
 
 const MOCK_CROPS = [
     { id: 'CROP-001', name: 'Avocados (Hass)', category: 'Fruit', baseUnit: 'Kilograms (kg)', status: 'Active' },
@@ -29,6 +30,10 @@ const MasterData = () => {
     const [isAddCropOpen, setIsAddCropOpen] = useState(false);
     const [isAddFacilityOpen, setIsAddFacilityOpen] = useState(false);
     const [isAddStandardOpen, setIsAddStandardOpen] = useState(false);
+    const [cropPage, setCropPage] = useState(1);
+    const [locPage, setLocPage] = useState(1);
+    const [certPage, setCertPage] = useState(1);
+    const itemsPerPage = 3;
 
     // Filters
     const [cropCategoryFilter, setCropCategoryFilter] = useState('All Categories');
@@ -110,7 +115,7 @@ const MasterData = () => {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => { setActiveTab(tab.id); setCropPage(1); setLocPage(1); setCertPage(1); }}
                         className={`pb-3 text-sm font-bold transition-colors relative ${activeTab === tab.id
                             ? 'text-green-600 dark:text-green-400'
                             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -209,7 +214,7 @@ const MasterData = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                            {filteredCrops.map(crop => (
+                            {filteredCrops.slice((cropPage - 1) * itemsPerPage, cropPage * itemsPerPage).map(crop => (
                                 <tr key={crop.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                     <td className="px-5 py-4 font-mono font-bold text-gray-700 dark:text-gray-300">{crop.id}</td>
                                     <td className="px-5 py-4 font-semibold text-gray-900 dark:text-white">{crop.name}</td>
@@ -243,6 +248,7 @@ const MasterData = () => {
                             ))}
                         </tbody>
                     </table>
+                    <Pagination currentPage={cropPage} totalItems={filteredCrops.length} itemsPerPage={itemsPerPage} onPageChange={setCropPage} />
                 </div>
             )}
 
@@ -331,7 +337,7 @@ const MasterData = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                                {filteredLocations.map(loc => (
+                                {filteredLocations.slice((locPage - 1) * itemsPerPage, locPage * itemsPerPage).map(loc => (
                                     <tr key={loc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                         <td className="px-5 py-4 font-mono font-bold text-gray-700 dark:text-gray-300">{loc.id}</td>
                                         <td className="px-5 py-4 font-semibold text-gray-900 dark:text-white">{loc.name}</td>
@@ -366,11 +372,10 @@ const MasterData = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={locPage} totalItems={filteredLocations.length} itemsPerPage={itemsPerPage} onPageChange={setLocPage} />
                     </div>
                 </>
             )}
-
-            {/* --- CERTIFICATIONS TAB --- */}
             {activeTab === 'certifications' && (
                 <>
                     {/* KPI Ribbon */}
@@ -455,7 +460,7 @@ const MasterData = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                                {filteredCerts.map(cert => (
+                                {filteredCerts.slice((certPage - 1) * itemsPerPage, certPage * itemsPerPage).map(cert => (
                                     <tr key={cert.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                         <td className="px-5 py-4 font-mono font-bold text-gray-700 dark:text-gray-300">{cert.id}</td>
                                         <td className="px-5 py-4 font-semibold text-gray-900 dark:text-white">{cert.name}</td>
@@ -497,11 +502,10 @@ const MasterData = () => {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination currentPage={certPage} totalItems={filteredCerts.length} itemsPerPage={itemsPerPage} onPageChange={setCertPage} />
                     </div>
                 </>
             )}
-
-            {/* Modals */}
             <AddCropModal
                 isOpen={isAddCropOpen}
                 onClose={() => setIsAddCropOpen(false)}
