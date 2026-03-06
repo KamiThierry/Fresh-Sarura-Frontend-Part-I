@@ -2,7 +2,8 @@ import { useState } from 'react';
 import {
     Search, Filter, Download, Plus, MoreHorizontal,
     Package, DollarSign, Layers,
-    Leaf, ArrowRight, Printer, Clock
+    Leaf, ArrowRight, Printer, Clock,
+    ChevronDown, FileSpreadsheet, FileText
 } from 'lucide-react';
 import LogIntakeModal from '../components/LogIntakeModal';
 import QCSortingModal from '../components/QCSortingModal';
@@ -18,6 +19,7 @@ const InventoryManagement = () => {
     const [isQCOpen, setIsQCOpen] = useState(false);
     const [isExportBatchOpen, setIsExportBatchOpen] = useState(false);
     const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+    const [isExportOpen, setIsExportOpen] = useState(false);
 
     // Selected Item States
     const [selectedIntakeId, setSelectedIntakeId] = useState('');
@@ -130,10 +132,52 @@ const InventoryManagement = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track intake, stock, and export allocation.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <Download size={18} />
-                        Export Report
-                    </button>
+                    {/* Export Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsExportOpen(prev => !prev)}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        >
+                            <Download size={18} />
+                            Export Report
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isExportOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isExportOpen && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setIsExportOpen(false)} />
+                                <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-20 overflow-hidden">
+                                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Export Options</p>
+                                    <button
+                                        onClick={() => { alert('Exporting as Excel…'); setIsExportOpen(false); }}
+                                        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+                                    >
+                                        <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg flex-shrink-0">
+                                            <FileSpreadsheet size={16} className="text-green-600 dark:text-green-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">Export Excel</p>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">Spreadsheet (.xlsx)</p>
+                                        </div>
+                                    </button>
+                                    <div className="mx-4 border-t border-gray-100 dark:border-gray-700" />
+                                    <button
+                                        onClick={() => { alert('Exporting as PDF…'); setIsExportOpen(false); }}
+                                        className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+                                    >
+                                        <div className="p-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg flex-shrink-0">
+                                            <FileText size={16} className="text-red-500 dark:text-red-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">Export PDF</p>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">Printable report (.pdf)</p>
+                                        </div>
+                                    </button>
+                                    <div className="pb-2" />
+                                </div>
+                            </>
+                        )}
+                    </div>
                     <button
                         onClick={() => setIsIntakeOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"

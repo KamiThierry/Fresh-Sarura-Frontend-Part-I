@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Clock, Database, AlertCircle, TrendingUp, ShieldAlert } from 'lucide-react';
+import { Users, Clock, Database, AlertCircle, ClipboardList, ShieldAlert, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const StatCard = ({ label, value, sub, icon: Icon, color, onClick }: {
@@ -32,7 +32,7 @@ const Dashboard = () => {
 
     const recentActivity = [
         { text: 'Farm Manager (Simbi Farm) account approved', sub: 'Actor: admin@freshsarura.rw', time: '2 min ago', dot: 'bg-green-500' },
-        { text: 'New crop \'Habanero\' added to Master Data', sub: 'Actor: admin@freshsarura.rw', time: '18 min ago', dot: 'bg-blue-500' },
+        { text: "New crop 'Habanero' added to Master Data", sub: 'Actor: admin@freshsarura.rw', time: '18 min ago', dot: 'bg-blue-500' },
         { text: 'Failed login attempt detected', sub: 'Source: IP 197.243.22.10', time: '1 hr ago', dot: 'bg-red-500' },
         { text: 'System backup completed successfully', sub: 'Source: System Automator', time: '3 hrs ago', dot: 'bg-green-500' },
     ];
@@ -40,15 +40,31 @@ const Dashboard = () => {
     return (
         <div className="p-6 space-y-6 animate-fade-in">
 
-            {/* Page header */}
-            <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-green-50 dark:bg-green-900/20 rounded-xl text-green-600 dark:text-green-400">
-                    <LayoutDashboard size={22} />
+            {/* Welcome Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-700 to-green-600 p-8 text-white shadow-lg flex flex-col justify-between gap-4">
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <h1 className="text-2xl md:text-3xl font-bold">Welcome back, Thierry</h1>
+                            </div>
+                            <p className="text-green-100 text-base md:text-lg opacity-90 max-w-2xl">
+                                Manage users, master data, and monitor system health from one place.
+                            </p>
+                        </div>
+                        {/* System Status Badge */}
+                        <div className="flex-shrink-0">
+                            <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-green-300 animate-pulse" />
+                                System Status: Operational
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="text-[22px] font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">System overview &amp; key metrics</p>
-                </div>
+
+                {/* Decorators */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white opacity-10 blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 right-20 -mb-10 h-40 w-40 rounded-full bg-green-400 opacity-20 blur-2xl pointer-events-none"></div>
             </div>
 
             {/* Stat cards */}
@@ -61,10 +77,18 @@ const Dashboard = () => {
 
                 {/* Recent Activity */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <h2 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <TrendingUp size={18} className="text-green-500" />
-                        Recent Activity
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <ClipboardList size={18} className="text-green-500" />
+                            Recent Activity
+                        </h2>
+                        <button
+                            onClick={() => navigate('/admin/event-logs')}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer"
+                        >
+                            View All <ArrowUpRight size={14} />
+                        </button>
+                    </div>
                     <div className="space-y-3">
                         {recentActivity.map((a, i) => (
                             <div key={i} className="flex items-start gap-3">

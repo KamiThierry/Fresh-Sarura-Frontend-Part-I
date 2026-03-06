@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, FileText, Calendar, Plane, Package, ArrowUpRight, Search, Filter } from 'lucide-react';
 import ShipmentBuilderModal from '../components/ShipmentBuilderModal';
 import ShipmentDetailsModal from '../components/ShipmentDetailsModal';
@@ -37,6 +38,13 @@ const Shipments = () => {
     const [selectedShipment, setSelectedShipment] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [searchParams] = useSearchParams();
+
+    // Deep-link from dashboard: ?flight=WB300 pre-fills the search bar
+    useEffect(() => {
+        const flightParam = searchParams.get('flight');
+        if (flightParam) setSearchTerm(flightParam);
+    }, [searchParams]);
 
     // Filtered data — drives table AND stat cards
     const filteredShipments = MOCK_SHIPMENTS.filter(s => {

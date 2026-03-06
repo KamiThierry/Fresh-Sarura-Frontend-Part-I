@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldAlert, Search, Filter, Download, Activity, Lock, UserCheck } from 'lucide-react';
+import { ShieldAlert, Search, Filter, Download, Activity, Lock, UserCheck, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
 
 const MOCK_EVENTS = [
     { id: 'EVT-1048', timestamp: 'Mar 03, 10:15 AM', severity: 'CRITICAL', description: 'Multiple failed login attempts', actor: 'Unknown', ip: '197.243.22.10' },
@@ -12,6 +12,7 @@ const MOCK_EVENTS = [
 const EventLogs = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [severityFilter, setSeverityFilter] = useState('All');
+    const [isExportOpen, setIsExportOpen] = useState(false);
 
     const filteredEvents = MOCK_EVENTS.filter(event => {
         const matchesSearch =
@@ -105,10 +106,52 @@ const EventLogs = () => {
                     </div>
                 </div>
 
-                <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-                    <Download size={16} />
-                    Export (CSV)
-                </button>
+                {/* Export Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setIsExportOpen(prev => !prev)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+                    >
+                        <Download size={16} />
+                        Export
+                        <ChevronDown size={13} className={`transition-transform duration-200 ${isExportOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isExportOpen && (
+                        <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsExportOpen(false)} />
+                            <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-20 overflow-hidden">
+                                <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Export Options</p>
+                                <button
+                                    onClick={() => { alert('Exporting as Excel…'); setIsExportOpen(false); }}
+                                    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+                                >
+                                    <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg flex-shrink-0">
+                                        <FileSpreadsheet size={16} className="text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">Export Excel</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">Spreadsheet (.xlsx)</p>
+                                    </div>
+                                </button>
+                                <div className="mx-4 border-t border-gray-100 dark:border-gray-700" />
+                                <button
+                                    onClick={() => { alert('Exporting as PDF…'); setIsExportOpen(false); }}
+                                    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
+                                >
+                                    <div className="p-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg flex-shrink-0">
+                                        <FileText size={16} className="text-red-500 dark:text-red-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight">Export PDF</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">Printable report (.pdf)</p>
+                                    </div>
+                                </button>
+                                <div className="pb-2" />
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Read-Only Data Table */}

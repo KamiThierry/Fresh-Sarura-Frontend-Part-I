@@ -15,7 +15,7 @@ const Sidebar = () => {
                 { path: '/farm-manager/crop-planning', icon: Sprout, label: 'Crop Planning' },
                 { path: '/farm-manager/yield-forecast', icon: TrendingUp, label: 'Yield Forecasting' },
                 { path: '/farm-manager/performance', icon: BarChart3, label: 'Performance' },
-                { path: '/farm-manager/communication', icon: MessageSquare, label: 'Communication' },
+                // { path: '/farm-manager/communication', icon: MessageSquare, label: 'Communication' },
             ]
         },
         {

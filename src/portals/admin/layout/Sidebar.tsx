@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-    LayoutDashboard, Users, ShieldAlert,
+    Home, Users, ShieldAlert,
     Settings, LogOut, Database
 } from 'lucide-react';
 
@@ -9,7 +9,7 @@ const Sidebar = () => {
         {
             title: 'Overview',
             items: [
-                { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                { path: '/admin/dashboard', icon: Home, label: 'Dashboard' },
             ],
         },
         {
