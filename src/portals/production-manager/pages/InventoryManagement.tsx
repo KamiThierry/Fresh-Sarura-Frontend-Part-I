@@ -10,6 +10,7 @@ import QCSortingModal from '../components/QCSortingModal';
 import CreateExportBatchModal from '../components/CreateExportBatchModal';
 import BatchDetailModal from '../components/BatchDetailModal';
 import Pagination from '../../shared/component/Pagination';
+import MoveToColdRoomModal, { ApprovedIntake } from '../components/MoveToColdRoomModal';
 
 const InventoryManagement = () => {
     // Tab State: 'intake' | 'inventory' | 'export'
@@ -25,6 +26,7 @@ const InventoryManagement = () => {
     // Selected Item States
     const [selectedIntakeId, setSelectedIntakeId] = useState('');
     const [selectedBatch, setSelectedBatch] = useState<any>(null);
+    const [selectedApprovedIntake, setSelectedApprovedIntake] = useState<ApprovedIntake | null>(null);
 
     // Action Menu State
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -50,12 +52,18 @@ const InventoryManagement = () => {
     ];
 
     // Tab 2: Inventory (Stock)
-    const inventoryItems = [
+    const [inventoryItems, setInventoryItems] = useState([
         { id: 'STK-AVO-26', produce: 'Avocados (Hass)', grade: 'A', weight: '4,200 kg', location: 'Cold Room A', temp: '4.2°C', status: 'Available', daysInStorage: 3, shelfLifeDays: 18 },
         { id: 'STK-AVO-27', produce: 'Avocados (Hass)', grade: 'A', weight: '1,500 kg', location: 'Cold Room B', temp: '4.5°C', status: 'Reserved', daysInStorage: 9, shelfLifeDays: 18 },
         { id: 'STK-CHI-12', produce: 'Bird Eye Chili', grade: 'A', weight: '600 kg', location: 'Ambient', temp: '18°C', status: 'Available', daysInStorage: 2, shelfLifeDays: 10 },
         { id: 'STK-MAN-05', produce: 'Mangoes (Apple)', grade: 'A', weight: '2,100 kg', location: 'Cold Room A', temp: '5.0°C', status: 'Allocated', daysInStorage: 6, shelfLifeDays: 7 },
-    ];
+    ]);
+
+    // New: Approved Intakes waiting to be moved to storage
+    const [approvedIntakes, setApprovedIntakes] = useState<ApprovedIntake[]>([
+        { intakeId: 'INT-2026-003', farmer: 'Cooperative A', crop: 'Bird Eye Chili', netWeight: 380, grade: 'Grade A (Export)' },
+        { intakeId: 'INT-2026-004', farmer: 'Jean Claude', crop: 'French Beans', netWeight: 320, grade: 'Grade B (Local Market)' },
+    ]);
 
     // Tab 3: Export Batches
     const exportBatches = [
@@ -127,6 +135,28 @@ const InventoryManagement = () => {
     const handlePerformQC = (intakeId: string) => {
         setSelectedIntakeId(intakeId);
         setIsQCOpen(true);
+    };
+
+    const handleConfirmMoveToColdRoom = (location: string, temp: string) => {
+        if (!selectedApprovedIntake) return;
+
+        // Remove from approved queue
+        setApprovedIntakes(prev => prev.filter(i => i.intakeId !== selectedApprovedIntake.intakeId));
+
+        // Add to inventory
+        const newStockItem = {
+            id: `STK-${selectedApprovedIntake.crop.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 90) + 10}`,
+            produce: selectedApprovedIntake.crop,
+            grade: selectedApprovedIntake.grade.includes('A') ? 'A' : 'B',
+            weight: `${selectedApprovedIntake.netWeight.toLocaleString()} kg`,
+            location,
+            temp,
+            status: 'Available',
+            daysInStorage: 0,
+            shelfLifeDays: selectedApprovedIntake.crop.includes('Avocado') ? 18 : 10, // Mock shelf life
+        };
+
+        setInventoryItems(prev => [newStockItem, ...prev]);
     };
 
     return (
@@ -373,110 +403,139 @@ const InventoryManagement = () => {
 
                 {/* --- TAB 2: INVENTORY VIEW --- */}
                 {activeTab === 'active_inventory' && (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    <th className="px-6 py-4">Stock ID</th>
-                                    <th className="px-6 py-4">Produce</th>
-                                    <th className="px-6 py-4">Grade</th>
-                                    <th className="px-6 py-4">Available Weight</th>
-                                    <th className="px-6 py-4">Location</th>
-                                    <th className="px-6 py-4">Avg Temp</th>
-                                    <th className="px-6 py-4">Shelf Life</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                {filteredInventory.slice((inventoryPage - 1) * itemsPerPage, inventoryPage * itemsPerPage).map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.produce}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${item.grade === 'A' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                                }`}>
-                                                Grade {item.grade}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">{item.weight}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.location}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.temp}</td>
-                                        <td className="px-6 py-4">
-                                            {(() => {
-                                                const daysLeft = item.shelfLifeDays - item.daysInStorage;
-                                                const isUrgent = daysLeft <= 2;
-                                                const isWarning = daysLeft <= 5 && daysLeft > 2;
-                                                const urgencyLabel = daysLeft <= 0
-                                                    ? 'Expiring today!'
-                                                    : daysLeft === 1
-                                                        ? '1 day left — URGENT'
-                                                        : `${daysLeft} days left`;
-                                                const urgencyColor = isUrgent
-                                                    ? 'text-red-600 dark:text-red-400'
-                                                    : isWarning
-                                                        ? 'text-amber-600 dark:text-amber-400'
-                                                        : 'text-emerald-600 dark:text-emerald-400';
-                                                const bgColor = isUrgent
-                                                    ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40'
-                                                    : isWarning
-                                                        ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40'
-                                                        : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40';
-                                                return (
-                                                    <div className={`inline-flex flex-col px-2.5 py-1.5 rounded-lg ${bgColor}`}>
-                                                        <span className={`text-xs font-bold ${urgencyColor} flex items-center gap-1`}>
-                                                            <Clock size={10} />
-                                                            {urgencyLabel}
-                                                        </span>
-                                                        <span className="text-[10px] text-gray-400 mt-0.5">
-                                                            In storage: {item.daysInStorage}d / {item.shelfLifeDays}d
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })()}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${item.status === 'Available' ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                                                item.status === 'Reserved' ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                                                    'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                                                }`}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="relative inline-block text-left">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                                    onBlur={() => setTimeout(() => setOpenMenuId(null), 150)}
-                                                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                                >
-                                                    <MoreHorizontal size={18} />
-                                                </button>
-                                                {openMenuId === item.id && (
-                                                    <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden text-left">
-                                                        <div className="p-1 gap-1 flex flex-col">
-                                                            <button
-                                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg font-medium transition-colors"
-                                                                onClick={() => setOpenMenuId(null)}
-                                                            >
-                                                                Adjust Stock
-                                                            </button>
-                                                            <button
-                                                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-colors"
-                                                                onClick={() => setOpenMenuId(null)}
-                                                            >
-                                                                Mark as Spoiled
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
+                    <div className="flex flex-col">
+
+                        {/* Awaiting Storage Queue */}
+                        {approvedIntakes.length > 0 && (
+                            <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 border-b border-gray-100 dark:border-gray-700">
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                    Approved Intakes Awaiting Storage
+                                    <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 py-0.5 px-2 rounded-full text-xs font-bold">{approvedIntakes.length}</span>
+                                </h3>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                    {approvedIntakes.map(intake => (
+                                        <div key={intake.intakeId} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-xl border border-blue-100 dark:border-blue-800/30 shadow-sm">
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{intake.netWeight.toLocaleString()} kg <span className="text-gray-500 font-medium">of</span> {intake.crop}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">From: {intake.farmer} <span className="opacity-50 mx-1">|</span> Ref: {intake.intakeId}</p>
                                             </div>
-                                        </td>
+                                            <button
+                                                onClick={() => setSelectedApprovedIntake(intake)}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                                            >
+                                                Move to Cold Room <ArrowRight size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                        <th className="px-6 py-4">Stock ID</th>
+                                        <th className="px-6 py-4">Produce</th>
+                                        <th className="px-6 py-4">Grade</th>
+                                        <th className="px-6 py-4">Available Weight</th>
+                                        <th className="px-6 py-4">Location</th>
+                                        <th className="px-6 py-4">Avg Temp</th>
+                                        <th className="px-6 py-4">Shelf Life</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <Pagination currentPage={inventoryPage} totalItems={filteredInventory.length} itemsPerPage={itemsPerPage} onPageChange={setInventoryPage} />
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    {filteredInventory.slice((inventoryPage - 1) * itemsPerPage, inventoryPage * itemsPerPage).map((item) => (
+                                        <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-sm font-bold text-gray-700 dark:text-gray-300">{item.id}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.produce}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${item.grade === 'A' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                    Grade {item.grade}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">{item.weight}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.location}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">{item.temp}</td>
+                                            <td className="px-6 py-4">
+                                                {(() => {
+                                                    const daysLeft = item.shelfLifeDays - item.daysInStorage;
+                                                    const isUrgent = daysLeft <= 2;
+                                                    const isWarning = daysLeft <= 5 && daysLeft > 2;
+                                                    const urgencyLabel = daysLeft <= 0
+                                                        ? 'Expiring today!'
+                                                        : daysLeft === 1
+                                                            ? '1 day left — URGENT'
+                                                            : `${daysLeft} days left`;
+                                                    const urgencyColor = isUrgent
+                                                        ? 'text-red-600 dark:text-red-400'
+                                                        : isWarning
+                                                            ? 'text-amber-600 dark:text-amber-400'
+                                                            : 'text-emerald-600 dark:text-emerald-400';
+                                                    const bgColor = isUrgent
+                                                        ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40'
+                                                        : isWarning
+                                                            ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40'
+                                                            : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40';
+                                                    return (
+                                                        <div className={`inline-flex flex-col px-2.5 py-1.5 rounded-lg ${bgColor}`}>
+                                                            <span className={`text-xs font-bold ${urgencyColor} flex items-center gap-1`}>
+                                                                <Clock size={10} />
+                                                                {urgencyLabel}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-400 mt-0.5">
+                                                                In storage: {item.daysInStorage}d / {item.shelfLifeDays}d
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${item.status === 'Available' ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
+                                                    item.status === 'Reserved' ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                                        'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                                    }`}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="relative inline-block text-left">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                                        onBlur={() => setTimeout(() => setOpenMenuId(null), 150)}
+                                                        className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                    >
+                                                        <MoreHorizontal size={18} />
+                                                    </button>
+                                                    {openMenuId === item.id && (
+                                                        <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden text-left">
+                                                            <div className="p-1 gap-1 flex flex-col">
+                                                                <button
+                                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg font-medium transition-colors"
+                                                                    onClick={() => setOpenMenuId(null)}
+                                                                >
+                                                                    Adjust Stock
+                                                                </button>
+                                                                <button
+                                                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium transition-colors"
+                                                                    onClick={() => setOpenMenuId(null)}
+                                                                >
+                                                                    Mark as Spoiled
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <Pagination currentPage={inventoryPage} totalItems={filteredInventory.length} itemsPerPage={itemsPerPage} onPageChange={setInventoryPage} />
+                        </div>
                     </div>
                 )}
 
@@ -633,6 +692,14 @@ const InventoryManagement = () => {
                     setTimeout(() => setSelectedBatch(null), 200);
                 }}
                 batch={selectedBatch}
+            />
+
+            {/* Modal 5: Move To Cold Room */}
+            <MoveToColdRoomModal
+                isOpen={!!selectedApprovedIntake}
+                onClose={() => setSelectedApprovedIntake(null)}
+                data={selectedApprovedIntake}
+                onSubmit={handleConfirmMoveToColdRoom}
             />
 
         </div>
