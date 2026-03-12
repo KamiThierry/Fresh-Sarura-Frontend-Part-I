@@ -4,6 +4,7 @@ import FarmManagerRoutes from './portals/farm-manager/FarmManagerRoutes';
 import LogisticsRoutes from './portals/logistics-officer/LogisticsRoutes';
 import AdminRoutes from './portals/admin/AdminRoutes';
 import DriverTaskView from './portals/driver/pages/DriverTaskView';
+import QCOfficerRoutes from './portals/qc-officer/QCOfficerRoutes';
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
 
         {/* Logistics Officer Portal */}
         <Route path="/logistics/*" element={<LogisticsRoutes />} />
+
+        {/* QC Officer Portal */}
+        <Route path="/qc/*" element={<QCOfficerRoutes />} />
 
         {/* Driver Lite Interface */}
         <Route path="/driver/task/:taskId" element={<DriverTaskView />} />
