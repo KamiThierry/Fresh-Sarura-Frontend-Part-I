@@ -12,7 +12,11 @@ const CreateCropCycleModal = ({ isOpen, onClose, onSubmit }: CreateCropCycleModa
     const [formData, setFormData] = useState({
         farmName: '',
         cropName: '',
-        season: 'Season A',
+        season: '',
+        startDate: '',
+        expectedHarvestDate: '',
+        blockName: '',
+        blockSize: '',
         totalBudget: 0,
         allocations: {
             seeds: 0,
@@ -107,16 +111,66 @@ const CreateCropCycleModal = ({ isOpen, onClose, onSubmit }: CreateCropCycleModa
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Season</label>
-                                    <select
+                                    <input
+                                        type="text"
                                         name="season"
                                         value={formData.season}
                                         onChange={handleInputChange}
+                                        placeholder="e.g. Season A"
                                         className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-green-500"
-                                    >
-                                        <option>Season A</option>
-                                        <option>Season B</option>
-                                        <option>Season C</option>
-                                    </select>
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Date Pickers Row */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="startDate"
+                                        value={formData.startDate}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-green-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expected Harvest Date</label>
+                                    <input
+                                        type="date"
+                                        name="expectedHarvestDate"
+                                        value={formData.expectedHarvestDate}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-green-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Block Information Row */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Block Name</label>
+                                    <input
+                                        type="text"
+                                        name="blockName"
+                                        value={formData.blockName}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. Block A"
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-green-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Block Size (Hectares)</label>
+                                    <input
+                                        type="number"
+                                        name="blockSize"
+                                        value={formData.blockSize}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g. 2.5"
+                                        min="0"
+                                        step="0.1"
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-green-500"
+                                    />
                                 </div>
                             </div>
                         </div>
