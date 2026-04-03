@@ -20,14 +20,15 @@ const CropPlanning = () => {
     };
 
     // Mock Data for Active Cycles
-    const activeCycles = [
+    const [activeCycles, setActiveCycles] = useState([
         {
             id: 1,
             farm: 'Kayonza Farm',
             season: 'Season A',
             crop: 'Avocados',
             budget: { total: 1500000, spent: 450000 }, // On Track
-            variance: 'ok'
+            variance: 'ok',
+            status: 'Active'
         },
         {
             id: 2,
@@ -35,7 +36,8 @@ const CropPlanning = () => {
             season: 'Season B',
             crop: 'Chili Peppers',
             budget: { total: 800000, spent: 850000 }, // Over Budget
-            variance: 'over'
+            variance: 'over',
+            status: 'Harvesting'
         },
         {
             id: 3,
@@ -43,16 +45,17 @@ const CropPlanning = () => {
             season: 'Season A',
             crop: 'French Beans',
             budget: { total: 2000000, spent: 1200000 }, // OK but high
-            variance: 'ok'
+            variance: 'ok',
+            status: 'Active'
         }
-    ];
+    ]);
 
     const handleManageCycle = (cycle: any) => {
         // Hydrate with mock details expected by the modal to prevent crashes
         const detailedCycle = {
             ...cycle,
             cycleId: `CY-${2024000 + cycle.id}`,
-            status: 'Active',
+            status: cycle.status,
             landSize: '2.5 Hectares',
             startDate: 'Jan 15, 2024',
             endDate: 'May 20, 2024',
@@ -183,6 +186,16 @@ const CropPlanning = () => {
                                         <BarChart2 size={16} />
                                     </div>
                                 </div>
+                                {/* Status badge */}
+                                <div className="mb-3">
+                                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                                        cycle.status === 'Harvesting' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse' :
+                                        cycle.status === 'Completed' ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400' :
+                                        'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    }`}>
+                                        {cycle.status === 'Active' ? '● Active' : cycle.status === 'Harvesting' ? '◉ Harvesting' : '✓ Completed'}
+                                    </span>
+                                </div>
 
                                 {/* Key Metric: Budget Variance */}
                                 <div className="mb-6">
@@ -236,6 +249,11 @@ const CropPlanning = () => {
                     isOpen={!!selectedCycle}
                     onClose={() => setSelectedCycle(null)}
                     cycle={selectedCycle}
+                    onCloseCycle={(finalYield) => {
+                        setActiveCycles(prev => prev.map(c => c.id === selectedCycle.id ? { ...c, status: 'Completed' } : c));
+                        alert(`Crop Cycle ${selectedCycle.cycleId} successfully closed with a final yield of ${finalYield}.`);
+                        setSelectedCycle(null);
+                    }}
                 />
             )}
         </div>

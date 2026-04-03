@@ -6,7 +6,7 @@ import {
     TrendingUp, FileBarChart, ShieldCheck,
     Target, Coins, Activity, Sprout,
     ThumbsUp, ThumbsDown, ListChecks,
-    Lock, Plus
+    Lock, Plus, Camera, Image
 } from 'lucide-react';
 import EvidenceViewModal from './EvidenceViewModal';
 import BudgetLedgerModal from './BudgetLedgerModal';
@@ -16,6 +16,7 @@ interface CropCycleDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     cycle: any;
+    onCloseCycle?: (finalYield: string) => void;
 }
 
 // Mock Pending Budget Requests (from FM)
@@ -26,17 +27,19 @@ const MOCK_BUDGET_REQUESTS: BudgetRequest[] = [
         cycleName: 'Avocado (Hass) — Season A 2026',
         submittedBy: 'Jean Claude (Site Manager)',
         submittedAt: new Date(Date.now() - 3600000).toISOString(),
+        startDate: '2026-04-10',
+        endDate: '2026-04-20',
         lineItems: [
-            { id: 1, activityName: 'Weeding Block B1', startDate: '2026-04-10', endDate: '2026-04-12', estimatedCostRwf: 150000 },
-            { id: 2, activityName: 'Apply NPK Fertilizer', startDate: '2026-04-15', endDate: '2026-04-15', estimatedCostRwf: 320000 },
-            { id: 3, activityName: 'Pest Scouting & Spray', startDate: '2026-04-18', endDate: '2026-04-20', estimatedCostRwf: 220000 },
+            { id: 1, activityName: 'Weeding Block B1', estimatedCostRwf: 150000 },
+            { id: 2, activityName: 'Apply NPK Fertilizer', estimatedCostRwf: 320000 },
+            { id: 3, activityName: 'Pest Scouting & Spray', estimatedCostRwf: 220000 },
         ],
         totalRequestedRwf: 690000,
         approvalStatus: 'Pending',
     },
 ];
 
-const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalProps) => {
+const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycleDetailModalProps) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'requests'>('overview');
     const [isLedgerOpen, setIsLedgerOpen] = useState(false);
     const [isReportOpen, setIsReportOpen] = useState(false);
@@ -47,6 +50,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
     const [cycleStatus, setCycleStatus] = useState(cycle?.status || 'Active');
     const [isAdjustBudgetOpen, setIsAdjustBudgetOpen] = useState(false);
     const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
+    const [selectedFieldReport, setSelectedFieldReport] = useState<any>(null);
 
     if (!isOpen || !cycle) return null;
 
@@ -58,8 +62,8 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
             { name: 'Pest Control', allocated: 180000, spent: 124000, variance: 56000, status: 'under_budget' },
         ],
         recentTransactions: [
-            { id: 'TX-001', date: 'Feb 10', desc: 'Field Report: NPK Fertilizer Application', amount: 72000, category: 'Fertilizers' },
-            { id: 'TX-002', date: 'Feb 08', desc: 'Field Report: Weeding Labor — Block B1', amount: 45000, category: 'Labor' },
+            { id: 'TX-001', date: 'Feb 10', desc: 'Field Report: NPK Fertilizer Application', amount: 72000, category: 'Fertilizers', block: 'Block B1', approvedAmount: 75000, notes: 'Added extra nitrogen as top dressing due to yellowing leaves. Work went well.', hasProof: true },
+            { id: 'TX-002', date: 'Feb 08', desc: 'Field Report: Weeding Labor — Block B1', amount: 45000, category: 'Labor', block: 'Block B1', approvedAmount: 45000, notes: 'Finished weeding ahead of schedule.', hasProof: false },
         ]
     });
     
@@ -70,11 +74,11 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'Active': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-            case 'Planned': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-            case 'Completed': return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
-            case 'Harvesting': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
+            case 'Active':     return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+            case 'Planned':    return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+            case 'Completed':  return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
+            case 'Harvesting': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+            default:           return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
         }
     };
 
@@ -123,7 +127,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                                     {cycle.cycleId}
                                 </h2>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(cycleStatus)}`}>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(cycleStatus)} ${cycleStatus === 'Harvesting' ? 'animate-pulse' : ''}`}>
                                     {cycleStatus}
                                 </span>
                             </div>
@@ -218,10 +222,27 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                             {/* Timeline / Progress */}
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Cycle Progress</h3>
+                                {cycleStatus === 'Harvesting' && (
+                                    <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 text-xs font-semibold flex items-center gap-2">
+                                        <span className="animate-pulse w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                                        Harvesting in progress — cycle is financially open for harvest labor requests.
+                                    </div>
+                                )}
+                                {cycleStatus === 'Completed' && (
+                                    <div className="mb-3 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-semibold flex items-center gap-2">
+                                        <Lock size={12} /> This cycle has been closed and is now read-only.
+                                    </div>
+                                )}
                                 <div className="relative pt-6 pb-2">
                                     <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-green-500 w-[65%] rounded-full relative">
-                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-green-500 rounded-full shadow-md"></div>
+                                        <div className={`h-full rounded-full relative transition-all duration-700 ${
+                                            cycleStatus === 'Completed' ? 'w-full bg-gray-400' :
+                                            cycleStatus === 'Harvesting' ? 'w-full bg-amber-500' :
+                                            'w-[65%] bg-green-500'
+                                        }`}>
+                                            {cycleStatus === 'Active' && (
+                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-green-500 rounded-full shadow-md"></div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex justify-between mt-4 text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -230,14 +251,64 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                             {cycle.startDate}
                                         </div>
                                         <div className="text-center">
-                                            <span className="block text-gray-900 dark:text-white">Current Stage</span>
-                                            Vegetative Growth
+                                            <span className={`block font-bold ${
+                                                cycleStatus === 'Harvesting' ? 'text-amber-600 dark:text-amber-400' :
+                                                cycleStatus === 'Completed' ? 'text-gray-500' :
+                                                'text-gray-900 dark:text-white'
+                                            }`}>Current Stage</span>
+                                            {cycleStatus === 'Harvesting' ? 'Harvesting' : cycleStatus === 'Completed' ? 'Closed' : 'Vegetative Growth'}
                                         </div>
                                         <div className="text-center">
-                                            <span className="block text-gray-400">Harvest</span>
+                                            <span className={`block ${
+                                                cycleStatus === 'Harvesting' ? 'text-amber-500 font-bold' :
+                                                cycleStatus === 'Completed' ? 'text-gray-500 font-bold' :
+                                                'text-gray-400'
+                                            }`}>Harvest</span>
                                             {cycle.endDate}
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Recent Field Activity Feed */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm mt-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent Field Activity</h3>
+                                    <button className="text-xs text-green-600 dark:text-green-400 font-bold hover:underline">View All</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {ledgerDataState.recentTransactions.slice(0, 3).map((tx) => (
+                                        <div 
+                                            key={tx.id} 
+                                            onClick={() => setSelectedFieldReport(tx)}
+                                            className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer group"
+                                        >
+                                            {tx.hasProof ? (
+                                                <img 
+                                                    src="https://images.unsplash.com/photo-1625246333195-58197bd47d26?auto=format&fit=crop&q=80&w=80&h=80" 
+                                                    alt="Thumbnail" 
+                                                    className="w-12 h-12 rounded-lg object-cover shadow-sm shrink-0 group-hover:scale-105 transition-transform border border-gray-200 dark:border-gray-700" 
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-emerald-100 dark:border-emerald-900/30">
+                                                    <FileText size={20} />
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-0.5">
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate pr-2">
+                                                        {tx.desc.replace('Field Report: ', '')}
+                                                    </p>
+                                                    <span className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 shrink-0 mt-0.5">{tx.date}</span>
+                                                </div>
+                                                {tx.notes && (
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                        "{tx.notes}"
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -319,19 +390,25 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                 </div>
                                 <div className="space-y-3">
                                     {ledgerDataState.recentTransactions.map((tx) => (
-                                        <div key={tx.id} className="flex justify-between items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors border border-dashed border-gray-100 dark:border-gray-700">
+                                        <div 
+                                            key={tx.id} 
+                                            onClick={() => setSelectedFieldReport(tx)}
+                                            className="flex justify-between items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors border border-dashed border-gray-100 dark:border-gray-700 cursor-pointer group"
+                                        >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500">
+                                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
                                                     <Coins size={14} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{tx.desc}</p>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{tx.desc}</p>
                                                     <p className="text-xs text-gray-500">{tx.date} • {tx.category}</p>
                                                 </div>
                                             </div>
-                                            <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">
-                                                -{tx.amount.toLocaleString()} Rwf
-                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">
+                                                    -{tx.amount.toLocaleString()} Rwf
+                                                </span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -393,8 +470,8 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                                             </span>
                                                         </div>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {req.cycleName} &nbsp;•&nbsp;
-                                                            {new Date(req.submittedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            {req.cycleName} &nbsp;•&nbsp; Period: {req.startDate} - {req.endDate} &nbsp;•&nbsp;
+                                                            Submitted: {new Date(req.submittedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -405,8 +482,6 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                                         <thead>
                                                             <tr className="text-gray-400 font-semibold border-b border-gray-100 dark:border-gray-700">
                                                                 <th className="pb-2 pr-4">Activity</th>
-                                                                <th className="pb-2 pr-4">Start</th>
-                                                                <th className="pb-2 pr-4">End</th>
                                                                 <th className="pb-2 text-right">Est. Cost</th>
                                                             </tr>
                                                         </thead>
@@ -414,8 +489,6 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
                                                             {req.lineItems.map(item => (
                                                                 <tr key={item.id} className="py-1">
                                                                     <td className="py-2 pr-4 font-medium text-gray-800 dark:text-gray-200">{item.activityName}</td>
-                                                                    <td className="py-2 pr-4 text-gray-500">{item.startDate}</td>
-                                                                    <td className="py-2 pr-4 text-gray-500">{item.endDate}</td>
                                                                     <td className="py-2 text-right font-mono text-gray-700 dark:text-gray-300">
                                                                         {item.estimatedCostRwf.toLocaleString()}
                                                                     </td>
@@ -540,11 +613,28 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle }: CropCycleDetailModalPr
             <ConfirmCloseModal
                 isOpen={isConfirmCloseOpen}
                 onClose={() => setIsConfirmCloseOpen(false)}
-                onConfirm={() => {
+                onConfirm={(finalYield) => {
                     setCycleStatus('Completed');
                     setIsConfirmCloseOpen(false);
-                    // Also switch back to overview tab to show updated status visually
                     setActiveTab('overview');
+                    if (onCloseCycle) onCloseCycle(finalYield);
+                }}
+            />
+
+            {/* Field Report Details Modal */}
+            <FieldReportDetailsModal
+                isOpen={!!selectedFieldReport}
+                onClose={() => setSelectedFieldReport(null)}
+                report={selectedFieldReport}
+                onFlag={(reason) => {
+                    setLedgerDataState(prev => ({
+                        ...prev,
+                        recentTransactions: prev.recentTransactions.map(tx => 
+                            tx.id === selectedFieldReport?.id ? { ...tx, status: 'Flagged', pmNote: reason } : tx
+                        )
+                    }));
+                    alert(`Flagged field report. Notification successfully dispatched to Farm Manager.\nReason: ${reason}`);
+                    setSelectedFieldReport(null);
                 }}
             />
         </div>,
@@ -694,7 +784,8 @@ function AdjustBudgetModal({ isOpen, onClose, categories, onAdjust }: { isOpen: 
     );
 }
 
-function ConfirmCloseModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose: () => void; onConfirm: () => void }) {
+function ConfirmCloseModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose: () => void; onConfirm: (finalYield: string) => void }) {
+    const [finalYield, setFinalYield] = useState('');
     if (!isOpen) return null;
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
@@ -704,16 +795,162 @@ function ConfirmCloseModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; on
                     <Activity size={24} />
                 </div>
                 <h3 className="font-bold text-lg text-gray-900 dark:text-white text-center mb-2">Close Crop Cycle?</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
-                    Are you sure you want to close this cycle? This will lock the financial ledger and prevent the Farm Manager from submitting further budget requests or field reports.
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4">
+                    This will lock the financial ledger permanently. The Farm Manager will no longer be able to submit budget requests or field reports.
                 </p>
+                <div className="mb-5">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wide">Final Actual Yield</label>
+                    <input
+                        type="text"
+                        value={finalYield}
+                        onChange={e => setFinalYield(e.target.value)}
+                        placeholder="e.g. 4,800 kg"
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition-all placeholder-gray-400 dark:text-white"
+                    />
+                </div>
                 <div className="flex gap-3">
                     <button onClick={onClose} className="flex-1 py-2 font-bold text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
                         Cancel
                     </button>
-                    <button onClick={onConfirm} className="flex-1 py-2 font-bold text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <button
+                        onClick={() => finalYield.trim() && onConfirm(finalYield)}
+                        disabled={!finalYield.trim()}
+                        className="flex-1 py-2 font-bold text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                         Confirm Close
                     </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+function FieldReportDetailsModal({ isOpen, onClose, report, onFlag }: { isOpen: boolean; onClose: () => void; report: any; onFlag?: (reason: string) => void }) {
+    const [isFlagging, setIsFlagging] = useState(false);
+    const [flagReason, setFlagReason] = useState('');
+
+    if (!isOpen || !report) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+            <div className="relative bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start bg-gray-50/50 dark:bg-gray-900/30">
+                    <div className="flex gap-4 items-center">
+                        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center">
+                            <FileText size={24} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-gray-900 dark:text-white leading-tight">
+                                {report.desc.replace('Field Report: ', '')}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {report.block} &nbsp;•&nbsp; Submitted: {report.date}
+                            </p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <div className="p-6 space-y-6 flex-1 overflow-y-auto max-h-[70vh]">
+                    {/* Financial Comparison */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Approved Budget</p>
+                            <p className="font-mono text-lg font-bold text-gray-800 dark:text-gray-200">
+                                {report.approvedAmount ? report.approvedAmount.toLocaleString() : 'N/A'} Rwf
+                            </p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-emerald-50 dark:bg-emerald-900/20">
+                            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Actual Cost</p>
+                            <p className="font-mono text-lg font-bold text-emerald-800 dark:text-emerald-300">
+                                {report.amount.toLocaleString()} Rwf
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Notes */}
+                    {report.notes && (
+                        <div>
+                            <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2">Field Notes</p>
+                            <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 text-blue-800 dark:text-blue-300 text-sm leading-relaxed">
+                                "{report.notes}"
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Proof of Work */}
+                    <div>
+                        <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                            <Image size={16} /> Proof of Work
+                        </p>
+                        {report.hasProof ? (
+                            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                                <img src="https://images.unsplash.com/photo-1625246333195-58197bd47d26?auto=format&fit=crop&q=80&w=800&h=400" alt="Proof of Work" className="w-full h-48 object-cover" />
+                                <div className="p-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs text-gray-500">
+                                    <span>Verified automatically</span>
+                                    <span className="text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Image Attached</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-8 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50 dark:bg-gray-900/30">
+                                <Image size={24} className="mb-2 opacity-50" />
+                                <p className="text-sm">No photo evidence uploaded.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                        {report.status === 'Flagged' ? (
+                            <div className="p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl text-amber-800 dark:text-amber-300 text-sm font-semibold flex items-center justify-center gap-2">
+                                <AlertCircle size={16} /> This report has been flagged for review.
+                            </div>
+                        ) : !isFlagging ? (
+                            <button
+                                onClick={() => setIsFlagging(true)}
+                                className="w-full py-3 rounded-xl border-2 border-amber-500 text-amber-600 dark:text-amber-500 font-bold text-sm hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors"
+                            >
+                                Flag for Review
+                            </button>
+                        ) : (
+                            <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                    Reason for Flagging <span className="text-gray-400 font-normal">(This will be sent to the Farm Manager)</span>
+                                </label>
+                                <textarea
+                                    value={flagReason}
+                                    onChange={(e) => setFlagReason(e.target.value)}
+                                    placeholder="Explain what is missing, unclear, or incorrect..."
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 text-gray-900 dark:text-white resize-none h-24"
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setIsFlagging(false)}
+                                        className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 font-semibold text-gray-600 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (onFlag && flagReason.trim()) {
+                                                onFlag(flagReason);
+                                                setIsFlagging(false);
+                                                setFlagReason('');
+                                            }
+                                        }}
+                                        disabled={!flagReason.trim()}
+                                        className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Submit Flag
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>,

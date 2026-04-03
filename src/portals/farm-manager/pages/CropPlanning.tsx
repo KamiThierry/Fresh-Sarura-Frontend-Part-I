@@ -85,6 +85,21 @@ const MOCK_CYCLES: CropCycle[] = [
                 pmNote: 'Budget exceeded category limit. Please revise to under 120,000 Rwf and resubmit.',
                 approvalStatus: 'Rejected' as const,
             },
+            {
+                id: 105,
+                title: 'Weed Control - Manual',
+                date: 'Oct 18',
+                completed: false,
+                proofRequired: true,
+                block: 'Block B1',
+                startDate: 'Oct 18, 2026',
+                endDate: 'Oct 19, 2026',
+                approvedBudgetRwf: 22000,
+                actualCostRwf: 45000,
+                statusDate: 'Oct 19, 2026',
+                pmNote: 'Actual cost is double the approved budget and no photo evidence was provided. Please explain in notes and upload proof.',
+                approvalStatus: 'Flagged' as const,
+            },
         ],
     },
     {
@@ -267,6 +282,10 @@ const CropPlanning = () => {
                     cycleName={`${logCycle.crop} (${logCycle.variety}) — ${logCycle.season}`}
                     tasks={[...logCycle.tasks, ...(approvedTasksByCycle[logCycle.id] ?? [])]}
                     onClose={() => setLogCycle(null)}
+                    onResubmit={(task) => {
+                        setLogCycle(null);
+                        setSelectedTask(task);
+                    }}
                 />
             )}
 

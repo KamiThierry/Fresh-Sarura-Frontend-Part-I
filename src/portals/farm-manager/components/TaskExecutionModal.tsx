@@ -88,17 +88,12 @@ const TaskExecutionModal = ({ task, onClose, onComplete }: TaskExecutionModalPro
                         <div className="p-4 bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl space-y-3">
                             <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                 <CalendarRange size={14} className="text-emerald-600 shrink-0" />
-                                <span className="font-semibold text-gray-500 dark:text-gray-400 min-w-[80px]">Start Date:</span>
-                                <span className="font-bold">{task.startDate ?? task.date}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                <CalendarRange size={14} className="text-emerald-600 shrink-0" />
-                                <span className="font-semibold text-gray-500 dark:text-gray-400 min-w-[80px]">End Date:</span>
-                                <span className="font-bold">{task.endDate ?? '—'}</span>
+                                <span className="font-semibold text-gray-500 dark:text-gray-400 min-w-[120px]">Approved Period:</span>
+                                <span className="font-bold">{task.startDate ?? task.date} — {task.endDate ?? '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                 <Coins size={14} className="text-emerald-600 shrink-0" />
-                                <span className="font-semibold text-gray-500 dark:text-gray-400 min-w-[80px]">Approved Budget:</span>
+                                <span className="font-semibold text-gray-500 dark:text-gray-400 min-w-[120px]">Approved Budget:</span>
                                 <span className="font-bold text-emerald-700 dark:text-emerald-400">
                                     {task.approvedBudgetRwf != null ? fmtRwf(task.approvedBudgetRwf) : (task.estimatedCostRwf != null ? fmtRwf(task.estimatedCostRwf) : '—')}
                                 </span>

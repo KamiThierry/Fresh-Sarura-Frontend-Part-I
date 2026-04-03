@@ -3,8 +3,6 @@
 export interface ActivityLineItem {
     id: number;
     activityName: string;
-    startDate: string;
-    endDate: string;
     estimatedCostRwf: number;
 }
 
@@ -14,6 +12,8 @@ export interface BudgetRequest {
     cycleName: string;
     submittedBy: string;
     submittedAt: string;
+    startDate: string;
+    endDate: string;
     lineItems: ActivityLineItem[];
     totalRequestedRwf: number;
     approvalStatus: 'Pending' | 'Approved' | 'Rejected';
@@ -31,7 +31,7 @@ export interface Task {
     startDate?: string;          // e.g. "Oct 15, 2026"
     endDate?: string;            // e.g. "Oct 17, 2026"
     block?: string;              // e.g. "Block B1"
-    approvalStatus?: 'Pending' | 'Approved' | 'Rejected';
+    approvalStatus?: 'Pending' | 'Approved' | 'Rejected' | 'Flagged';
     actualCostRwf?: number;      // Actual cost reported by FM on field report
     statusDate?: string;         // Date the status changed, e.g. "Apr 3, 2026"
     pmNote?: string;             // PM's feedback / rejection reason

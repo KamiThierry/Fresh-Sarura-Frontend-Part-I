@@ -3,19 +3,20 @@ import { createPortal } from 'react-dom';
 import {
     X, ScrollText, CheckCircle2, XCircle,
     Coins, MessageSquare, StickyNote, CalendarDays,
-    MapPin, Inbox
+    MapPin, Inbox, AlertCircle
 } from 'lucide-react';
 import type { Task } from '../../shared/types/activity';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type FilterTab = 'all' | 'completed' | 'rejected';
+type FilterTab = 'action_required' | 'all' | 'completed' | 'rejected';
 
 interface FMActivityLogModalProps {
     cycleName: string;
-    /** All tasks that have a terminal status: completed or rejected */
+    /** All tasks that have a terminal status: completed or rejected or flagged */
     tasks: Task[];
     onClose: () => void;
+    onResubmit?: (task: Task) => void;
 }
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -25,12 +26,15 @@ const fmtRwf = (n?: number) =>
 
 // ─── Row Component ────────────────────────────────────────────────────────────
 
-const ActivityRow = ({ task }: { task: Task }) => {
+const ActivityRow = ({ task, onResubmit }: { task: Task, onResubmit?: (t: Task) => void }) => {
     const isCompleted = task.completed;
     const isRejected  = task.approvalStatus === 'Rejected';
+    const isFlagged   = task.approvalStatus === 'Flagged';
 
     return (
         <div className={`rounded-xl border p-4 space-y-3 transition-all ${
+            isFlagged
+                ? 'bg-amber-50/70 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/40' :
             isCompleted
                 ? 'bg-green-50/70 dark:bg-green-900/10 border-green-100 dark:border-green-900/20'
                 : 'bg-red-50/60 dark:bg-red-900/10 border-red-100 dark:border-red-900/20'
@@ -42,7 +46,11 @@ const ActivityRow = ({ task }: { task: Task }) => {
                     <CalendarDays size={11} />
                     {task.statusDate ?? task.date}
                 </div>
-                {isCompleted ? (
+                {isFlagged ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
+                        <AlertCircle size={9} /> Action Required
+                    </span>
+                ) : isCompleted ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-600 text-white">
                         <CheckCircle2 size={9} /> Completed
                     </span>
@@ -58,7 +66,7 @@ const ActivityRow = ({ task }: { task: Task }) => {
                 <p className={`text-sm font-bold leading-snug ${
                     isRejected
                         ? 'text-gray-500 dark:text-gray-400 line-through'
-                        : 'text-gray-900 dark:text-white'
+                        : isFlagged ? 'text-amber-900 dark:text-amber-100' : 'text-gray-900 dark:text-white'
                 }`}>
                     {task.title}
                 </p>
@@ -112,21 +120,38 @@ const ActivityRow = ({ task }: { task: Task }) => {
             {/* Notes block */}
             {(task.pmNote || task.fieldNote) && (
                 <div className={`flex items-start gap-2 p-2.5 rounded-lg text-xs ${
+                    isFlagged
+                        ? 'bg-amber-100/60 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200 border border-amber-200/50 dark:border-amber-800/50' :
                     isRejected
                         ? 'bg-red-100/60 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                         : 'bg-gray-100/80 dark:bg-gray-700/40 text-gray-600 dark:text-gray-400'
                 }`}>
-                    {isRejected ? (
+                    {isFlagged ? (
+                        <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-500" />
+                    ) : isRejected ? (
                         <MessageSquare size={12} className="shrink-0 mt-0.5 text-red-500" />
                     ) : (
                         <StickyNote size={12} className="shrink-0 mt-0.5 text-gray-400" />
                     )}
                     <span className="leading-relaxed">
                         <span className="font-bold">
-                            {isRejected ? 'PM Note: ' : 'Field Note: '}
+                            {isFlagged ? 'PM Note: ' : isRejected ? 'PM Note: ' : 'Field Note: '}
                         </span>
-                        {isRejected ? task.pmNote : task.fieldNote}
+                        {isFlagged ? task.pmNote : isRejected ? task.pmNote : task.fieldNote}
                     </span>
+                </div>
+            )}
+
+            {/* Edit & Resubmit Action */}
+            {isFlagged && onResubmit && (
+                <div className="pt-2">
+                    <button
+                        onClick={() => onResubmit(task)}
+                        className="w-full py-2.5 rounded-xl border-2 border-amber-500 text-amber-600 dark:text-amber-500 font-bold text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                        <ScrollText size={14} />
+                        Edit & Resubmit Report
+                    </button>
                 </div>
             )}
         </div>
@@ -135,14 +160,16 @@ const ActivityRow = ({ task }: { task: Task }) => {
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-const FMActivityLogModal = ({ cycleName, tasks, onClose }: FMActivityLogModalProps) => {
+const FMActivityLogModal = ({ cycleName, tasks, onClose, onResubmit }: FMActivityLogModalProps) => {
     const [filter, setFilter] = useState<FilterTab>('all');
 
     const completed = tasks.filter(t => t.completed);
     const rejected  = tasks.filter(t => !t.completed && t.approvalStatus === 'Rejected');
-    const allHistory = [...completed, ...rejected];
+    const flagged   = tasks.filter(t => !t.completed && t.approvalStatus === 'Flagged');
+    const allHistory = [...flagged, ...completed, ...rejected];
 
     const displayed =
+        filter === 'action_required' ? flagged :
         filter === 'completed' ? completed :
         filter === 'rejected'  ? rejected  :
         allHistory;
@@ -154,7 +181,8 @@ const FMActivityLogModal = ({ cycleName, tasks, onClose }: FMActivityLogModalPro
         return db - da;
     });
 
-    const TABS: { key: FilterTab; label: string; count: number }[] = [
+    const TABS: { key: FilterTab; label: string; count: number; alert?: boolean }[] = [
+        { key: 'action_required', label: 'Action Required', count: flagged.length, alert: flagged.length > 0 },
         { key: 'all',       label: 'All',       count: allHistory.length },
         { key: 'completed', label: 'Completed',  count: completed.length  },
         { key: 'rejected',  label: 'Rejected',   count: rejected.length   },
@@ -202,15 +230,16 @@ const FMActivityLogModal = ({ cycleName, tasks, onClose }: FMActivityLogModalPro
                             onClick={() => setFilter(tab.key)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                                 filter === tab.key
-                                    ? 'bg-emerald-600 text-white shadow-sm'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                    ? tab.alert ? 'bg-amber-500 text-white shadow-sm' : 'bg-emerald-600 text-white shadow-sm'
+                                    : tab.alert ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                         >
+                            {tab.alert && <AlertCircle size={12} className={filter === tab.key ? 'text-white' : 'text-amber-500'} />}
                             {tab.label}
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                                 filter === tab.key
                                     ? 'bg-white/20 text-white'
-                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                                    : tab.alert ? 'bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-300' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
                             }`}>
                                 {tab.count}
                             </span>
@@ -240,7 +269,7 @@ const FMActivityLogModal = ({ cycleName, tasks, onClose }: FMActivityLogModalPro
                     ) : (
                         <div className="space-y-3">
                             {sorted.map(task => (
-                                <ActivityRow key={task.id} task={task} />
+                                <ActivityRow key={task.id} task={task} onResubmit={onResubmit} />
                             ))}
                         </div>
                     )}
@@ -249,6 +278,12 @@ const FMActivityLogModal = ({ cycleName, tasks, onClose }: FMActivityLogModalPro
                 {/* ── Footer summary strip ── */}
                 {allHistory.length > 0 && (
                     <div className="shrink-0 px-6 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-900/40 flex items-center gap-4 text-[10px] text-gray-400">
+                        {flagged.length > 0 && (
+                            <span className="flex items-center gap-1 text-amber-600/80 dark:text-amber-500/80 font-bold">
+                                <AlertCircle size={10} />
+                                {flagged.length} action req
+                            </span>
+                        )}
                         <span className="flex items-center gap-1">
                             <CheckCircle2 size={10} className="text-green-500" />
                             {completed.length} completed

@@ -5,6 +5,7 @@ import { X, Truck, CheckCircle2 } from 'lucide-react';
 interface HarvestReadyModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSubmitConfirm?: (crop: string) => void;
 }
 
 const CROP_CYCLES = [
@@ -15,7 +16,7 @@ const CROP_CYCLES = [
     'Chili (Bird Eye) — Block E',
 ];
 
-const HarvestReadyModal = ({ isOpen, onClose }: HarvestReadyModalProps) => {
+const HarvestReadyModal = ({ isOpen, onClose, onSubmitConfirm }: HarvestReadyModalProps) => {
     const [cropCycle, setCropCycle] = useState(CROP_CYCLES[0]);
     const [volume, setVolume] = useState('');
     const [notes, setNotes] = useState('');
@@ -28,6 +29,7 @@ const HarvestReadyModal = ({ isOpen, onClose }: HarvestReadyModalProps) => {
         setSubmitted(true);
         setTimeout(() => {
             setSubmitted(false);
+            if (onSubmitConfirm) onSubmitConfirm(cropCycle);
             setVolume('');
             setNotes('');
             onClose();

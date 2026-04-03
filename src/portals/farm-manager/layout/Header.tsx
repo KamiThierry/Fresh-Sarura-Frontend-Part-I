@@ -31,9 +31,9 @@ const Header = () => {
                 <ThemeToggle />
 
                 {/* Notification Icon */}
-                <button className="relative p-2.5 rounded-xl bg-white/80 hover:bg-[#4CAF50] hover:text-white transition-all shadow-sm dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-green-600">
+                <button className="relative p-2.5 rounded-xl bg-white/80 hover:bg-red-500 hover:text-white transition-all shadow-sm dark:bg-gray-700/50 dark:text-gray-200 dark:hover:bg-red-600" title="1 Unread Notification - PM Flagged Report">
                     <Bell size={18} />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-[#4CAF50] rounded-full ring-2 ring-white dark:ring-gray-800"></span>
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
                 </button>
 
                 {/* User Avatar & Profile */}

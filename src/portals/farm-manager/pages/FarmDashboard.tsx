@@ -101,11 +101,11 @@ const FarmDashboard = () => {
         { week: 'W4', kgs: 1750 },
     ];
 
-    const activeCycles = [
-        { id: 1, crop: 'Avocado', variety: 'Hass', season: 'Season A', status: 'Growing' },
+    const [activeCycles, setActiveCycles] = useState([
+        { id: 1, crop: 'Avocado', variety: 'Hass', season: 'Season A', status: 'Active' },
         { id: 2, crop: 'Chili', variety: 'Bird Eye', season: 'Season B', status: 'Flowering' },
         { id: 3, crop: 'Beans', variety: 'Bush', season: 'Season A', status: 'Planting' },
-    ];
+    ]);
 
     return (
         <>
@@ -224,7 +224,11 @@ const FarmDashboard = () => {
                                             <p className="text-xs text-gray-500">{cycle.variety}</p>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] font-bold px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                                        cycle.status === 'Harvesting' 
+                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse' 
+                                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    }`}>
                                         {cycle.status}
                                     </span>
                                 </div>
@@ -243,6 +247,11 @@ const FarmDashboard = () => {
             <HarvestReadyModal
                 isOpen={isHarvestModalOpen}
                 onClose={() => setIsHarvestModalOpen(false)}
+                onSubmitConfirm={(cropText) => {
+                    const mappedCrop = cropText.split(' ')[0];
+                    setActiveCycles(prev => prev.map(c => c.crop === mappedCrop ? { ...c, status: 'Harvesting' } : c));
+                    alert(`SYSTEM: Notification dispatched to PM => "Harvesting initiated for ${cropText} by FM."`);
+                }}
             />
             <RequestSuppliesModal
                 isOpen={isSuppliesModalOpen}
