@@ -119,11 +119,11 @@ const BudgetLedgerModal = ({ isOpen, onClose, data: _data }: BudgetLedgerModalPr
                         </div>
                     </section>
 
-                    {/* Recent Transactions List */}
+                    {/* Recently Logged Expenses */}
                     <section>
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <TrendingUp size={18} className="text-purple-500" />
-                            Recent Approved Expenses
+                            Recently Logged Expenses
                         </h3>
 
                         <div className="space-y-3">
@@ -140,7 +140,7 @@ const BudgetLedgerModal = ({ isOpen, onClose, data: _data }: BudgetLedgerModalPr
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-bold text-gray-900 dark:text-white">-{tx.amount.toLocaleString()} Rwf</p>
-                                        <p className="text-[10px] text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded inline-block mt-0.5">Approved</p>
+                                        <p className="text-[10px] text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded inline-block mt-0.5">Logged</p>
                                     </div>
                                 </div>
                             ))}

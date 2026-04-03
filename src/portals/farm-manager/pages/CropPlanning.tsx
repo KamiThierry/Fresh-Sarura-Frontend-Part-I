@@ -1,20 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-    Sprout, Calendar, AlertTriangle, CheckCircle2,
-    Plus, X, ChevronRight, Droplets, Leaf, Coins,
-    Camera, AlertCircle
+    Sprout, AlertTriangle, CheckCircle2,
+    Plus, Leaf, Coins, Camera,
+    Clock, ScrollText,
+    ChevronRight
 } from 'lucide-react';
 import TaskExecutionModal from '../components/TaskExecutionModal';
-
-// --- Types ---
-interface Task {
-    id: number;
-    title: string;
-    date: string;
-    completed: boolean;
-    proofRequired?: boolean;
-    sop?: string;
-}
+import BudgetActivityRequestModal from '../components/BudgetActivityRequestModal';
+import FMActivityLogModal from '../components/FMActivityLogModal';
+import type { Task, BudgetRequest, ActivityLineItem } from '../../shared/types/activity';
 
 interface CropCycle {
     id: number;
@@ -22,7 +16,7 @@ interface CropCycle {
     variety: string;
     season: string;
     stage: 'Vegetative' | 'Flowering' | 'Fruiting' | 'Harvest';
-    budgetUsed: number; // Percentage
+    budgetUsed: number;
     targetYield: string;
     nextMilestone: string;
     tasks: Task[];
@@ -46,7 +40,14 @@ const MOCK_CYCLES: CropCycle[] = [
                 date: 'Oct 10',
                 completed: true,
                 proofRequired: true,
-                sop: "Remove all dead or diseased branches. Prune aimed at opening up the canopy to light. Ensure cuts are clean and angled."
+                block: 'Block A3',
+                startDate: 'Oct 8, 2026',
+                endDate: 'Oct 10, 2026',
+                approvedBudgetRwf: 35000,
+                actualCostRwf: 33500,
+                statusDate: 'Oct 10, 2026',
+                fieldNote: 'Completed on schedule. All branches cleaned without issues.',
+                approvalStatus: 'Approved' as const,
             },
             {
                 id: 102,
@@ -54,7 +55,11 @@ const MOCK_CYCLES: CropCycle[] = [
                 date: 'Oct 15',
                 completed: false,
                 proofRequired: true,
-                sop: "Apply 2kg per tree. Spread evenly around the drip line, not against the trunk. Water immediately after application."
+                block: 'Block B1',
+                startDate: 'Oct 15, 2026',
+                endDate: 'Oct 17, 2026',
+                approvedBudgetRwf: 72000,
+                approvalStatus: 'Approved' as const,
             },
             {
                 id: 103,
@@ -62,9 +67,25 @@ const MOCK_CYCLES: CropCycle[] = [
                 date: 'Oct 18',
                 completed: false,
                 proofRequired: false,
-                sop: "Walk the perimeter and X-pattern through the block. Check 10 trees randomly for mites and thrips."
+                block: 'Block A3',
+                startDate: 'Oct 18, 2026',
+                endDate: 'Oct 18, 2026',
+                approvedBudgetRwf: 15000,
+                approvalStatus: 'Approved' as const,
             },
-        ]
+            {
+                id: 104,
+                title: 'Drip Irrigation Extension',
+                date: 'Oct 5',
+                completed: false,
+                proofRequired: false,
+                block: 'Block B2',
+                estimatedCostRwf: 180000,
+                statusDate: 'Oct 4, 2026',
+                pmNote: 'Budget exceeded category limit. Please revise to under 120,000 Rwf and resubmit.',
+                approvalStatus: 'Rejected' as const,
+            },
+        ],
     },
     {
         id: 2,
@@ -72,7 +93,7 @@ const MOCK_CYCLES: CropCycle[] = [
         variety: 'Bird Eye',
         season: 'Season B 2026',
         stage: 'Flowering',
-        budgetUsed: 92, // Over budget warning
+        budgetUsed: 92,
         targetYield: '1,200 kg',
         nextMilestone: 'Pest Control Spray',
         tasks: [
@@ -81,14 +102,30 @@ const MOCK_CYCLES: CropCycle[] = [
                 title: 'Weeding Channel A',
                 date: 'Oct 12',
                 completed: true,
-                proofRequired: false
+                proofRequired: false,
+                block: 'Block C2',
+                startDate: 'Oct 11, 2026',
+                endDate: 'Oct 12, 2026',
+                approvedBudgetRwf: 20000,
+                actualCostRwf: 20000,
+                statusDate: 'Oct 12, 2026',
+                fieldNote: 'Completed on time. Soil was dry, work was faster than estimated.',
+                approvalStatus: 'Approved' as const,
             },
             {
                 id: 202,
                 title: 'Irrigation Check',
                 date: 'Oct 13',
                 completed: true,
-                proofRequired: true
+                proofRequired: true,
+                block: 'Block C1',
+                startDate: 'Oct 13, 2026',
+                endDate: 'Oct 13, 2026',
+                approvedBudgetRwf: 10000,
+                actualCostRwf: 12500,
+                statusDate: 'Oct 13, 2026',
+                fieldNote: 'Delayed 1 day due to heavy rain. One drip line replaced — cost went slightly over estimate.',
+                approvalStatus: 'Approved' as const,
             },
             {
                 id: 203,
@@ -96,47 +133,78 @@ const MOCK_CYCLES: CropCycle[] = [
                 date: 'Oct 14',
                 completed: false,
                 proofRequired: true,
-                sop: "Mix Copper Fungicide at 50ml/20L. Spray till runoff, focusing on undersides of leaves. Wear full PPE."
+                block: 'Block C2',
+                startDate: 'Oct 14, 2026',
+                endDate: 'Oct 14, 2026',
+                approvedBudgetRwf: 48000,
+                approvalStatus: 'Approved' as const,
             },
-        ]
-    }
+            {
+                id: 204,
+                title: 'Shade Net Installation',
+                date: 'Oct 9',
+                completed: false,
+                proofRequired: false,
+                block: 'Block C1',
+                estimatedCostRwf: 95000,
+                statusDate: 'Oct 9, 2026',
+                pmNote: 'Not approved this season — shade nets are not in the approved input plan. Discuss at next review.',
+                approvalStatus: 'Rejected' as const,
+            },
+        ],
+    },
 ];
 
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 const CropPlanning = () => {
-    const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const [selectedCycle, setSelectedCycle] = useState<CropCycle | null>(null);
 
-    // Task Execution State
+    // Pending requests keyed by cycleId (submitted, awaiting PM approval)
+    const [pendingRequestsByCycle, setPendingRequestsByCycle] = useState<Record<number, BudgetRequest[]>>({});
+
+    // PM-approved extra tasks keyed by cycleId
+    const [approvedTasksByCycle, setApprovedTasksByCycle] = useState<Record<number, Task[]>>({});
+
+    // Task Execution
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+    // Activity Log
+    const [logCycle, setLogCycle] = useState<CropCycle | null>(null);
 
     const handleRequestClick = (cycle: CropCycle) => {
         setSelectedCycle(cycle);
-        setIsRequisitionModalOpen(true);
+        setIsRequestModalOpen(true);
     };
 
     const handleTaskClick = (task: Task) => {
-        if (!task.completed) {
-            setSelectedTask(task);
-        }
+        if (!task.completed) setSelectedTask(task);
     };
 
-    const handleTaskComplete = (taskId: number, notes: string, hasProof: boolean) => {
-        // In a real app, you would make an API call here
-        console.log(`Task ${taskId} completed with notes: ${notes} and proof: ${hasProof}`);
-        alert("Task marked as complete!");
+    const handleTaskComplete = (taskId: number, notes: string, hasProof: boolean, actualCostRwf: number | null) => {
+        console.log(`Field report — Task: ${taskId}, Notes: ${notes}, Proof: ${hasProof}, Cost: ${actualCostRwf ?? 'N/A'} Rwf`);
+        alert('Field report submitted successfully!');
         setSelectedTask(null);
     };
 
-    const closeRequisitionModal = () => {
-        setIsRequisitionModalOpen(false);
+    const handleBudgetRequestSubmit = (request: BudgetRequest) => {
+        // Persist the pending request so the FM can see it in the "Pending Requests" tab
+        setPendingRequestsByCycle(prev => ({
+            ...prev,
+            [request.cycleId]: [...(prev[request.cycleId] ?? []), request],
+        }));
+        setIsRequestModalOpen(false);
         setSelectedCycle(null);
     };
 
-    const handleSubmitRequest = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Simulate API Call
-        alert(`Request sent for ${selectedCycle?.crop} to Production Manager.`);
-        closeRequisitionModal();
+    // Called when PM approves (future integration point)
+    const handleRequestApproved = (cycleId: number, newTasks: Task[]) => {
+        setApprovedTasksByCycle(prev => ({
+            ...prev,
+            [cycleId]: [...(prev[cycleId] ?? []), ...newTasks],
+        }));
     };
 
     return (
@@ -149,7 +217,7 @@ const CropPlanning = () => {
                         My Active Crop Cycles
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Manage your assigned crops, track budgets, and request inputs.
+                        Manage your active blocks, track approved budgets, and log field operations.
                     </p>
                 </div>
             </div>
@@ -161,8 +229,11 @@ const CropPlanning = () => {
                         <CycleCard
                             key={cycle.id}
                             cycle={cycle}
+                            extraTasks={approvedTasksByCycle[cycle.id] ?? []}
+                            pendingRequests={pendingRequestsByCycle[cycle.id] ?? []}
                             onRequestInput={() => handleRequestClick(cycle)}
                             onTaskClick={handleTaskClick}
+                            onViewLog={() => setLogCycle(cycle)}
                         />
                     ))}
                 </div>
@@ -170,9 +241,15 @@ const CropPlanning = () => {
                 <EmptyState />
             )}
 
-            {/* Requisition Modal */}
-            {isRequisitionModalOpen && selectedCycle && (
-                <RequisitionModal cycle={selectedCycle} onClose={closeRequisitionModal} onSubmit={handleSubmitRequest} />
+            {/* Budget & Activity Request Modal */}
+            {isRequestModalOpen && selectedCycle && (
+                <BudgetActivityRequestModal
+                    isOpen={isRequestModalOpen}
+                    onClose={() => { setIsRequestModalOpen(false); setSelectedCycle(null); }}
+                    cycleId={selectedCycle.id}
+                    cycleName={`${selectedCycle.crop} (${selectedCycle.variety}) — ${selectedCycle.season}`}
+                    onSubmit={handleBudgetRequestSubmit}
+                />
             )}
 
             {/* Task Execution Modal */}
@@ -183,27 +260,58 @@ const CropPlanning = () => {
                     onComplete={handleTaskComplete}
                 />
             )}
+
+            {/* Activity Log Modal */}
+            {logCycle && (
+                <FMActivityLogModal
+                    cycleName={`${logCycle.crop} (${logCycle.variety}) — ${logCycle.season}`}
+                    tasks={[...logCycle.tasks, ...(approvedTasksByCycle[logCycle.id] ?? [])]}
+                    onClose={() => setLogCycle(null)}
+                />
+            )}
+
+            {/* Integration binding point for PM approval */}
+            <span className="hidden" data-on-approved={String(!!handleRequestApproved)} />
         </div>
     );
 };
 
-// --- Sub-Components ---
+// ─── CycleCard ────────────────────────────────────────────────────────────────
 
-const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; onRequestInput: () => void; onTaskClick: (task: Task) => void }) => {
-    const getBudgetColor = (percent: number) => {
-        if (percent > 90) return 'bg-red-500';
-        if (percent > 75) return 'bg-orange-400';
-        return 'bg-green-500';
-    };
+type CardTab = 'plan' | 'pending';
 
-    const getBudgetTextColor = (percent: number) => {
-        if (percent > 90) return 'text-red-600';
-        if (percent > 75) return 'text-orange-600';
-        return 'text-gray-600 dark:text-gray-400';
-    };
+interface CycleCardProps {
+    cycle: CropCycle;
+    extraTasks: Task[];
+    pendingRequests: BudgetRequest[];
+    onRequestInput: () => void;
+    onTaskClick: (task: Task) => void;
+    onViewLog: () => void;
+}
+
+const CycleCard = ({ cycle, extraTasks, pendingRequests, onRequestInput, onTaskClick, onViewLog }: CycleCardProps) => {
+    const [activeTab, setActiveTab] = useState<CardTab>('plan');
+
+    const getBudgetColor = (p: number) => p > 90 ? 'bg-red-500' : p > 75 ? 'bg-orange-400' : 'bg-green-500';
+    const getBudgetTextColor = (p: number) => p > 90 ? 'text-red-600' : p > 75 ? 'text-orange-600' : 'text-gray-600 dark:text-gray-400';
+
+    // Flatten pending line items for display
+    const pendingItems: (ActivityLineItem & { submittedAt: string })[] = pendingRequests.flatMap(r =>
+        r.lineItems.map(li => ({ ...li, submittedAt: r.submittedAt }))
+    );
+
+    const pendingCount = pendingItems.length;
+
+    // Approved tasks = original cycle tasks + PM-dropped-in extras (all Approved)
+    const approvedTasks = [...cycle.tasks, ...extraTasks].filter(
+        t => !t.approvalStatus || t.approvalStatus === 'Approved'
+    );
+
+    const fmtRwf = (n: number) => `${n.toLocaleString()} Rwf`;
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+
             {/* Card Header */}
             <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-start bg-gray-50/50 dark:bg-gray-700/20">
                 <div>
@@ -224,6 +332,7 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
 
             {/* Body */}
             <div className="p-5 space-y-5 flex-1">
+
                 {/* 1. Budget Bar */}
                 <div>
                     <div className="flex justify-between items-end mb-2">
@@ -239,7 +348,7 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
                         <div
                             className={`h-full rounded-full transition-all duration-500 ${getBudgetColor(cycle.budgetUsed)}`}
                             style={{ width: `${cycle.budgetUsed}%` }}
-                        ></div>
+                        />
                     </div>
                     {cycle.budgetUsed > 90 && (
                         <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1 font-medium">
@@ -261,45 +370,145 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
                     </div>
                 </div>
 
-                {/* 3. Tasks */}
+                {/* 3. Tabbed Task Section */}
                 <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Upcoming Tasks</h4>
-                        <span className="text-[10px] text-gray-400">Tap to execute</span>
+                    {/* Tab bar */}
+                    <div className="flex items-center gap-1 border-b border-gray-100 dark:border-gray-700 mb-3">
+                        <button
+                            onClick={() => setActiveTab('plan')}
+                            className={`relative pb-2 px-1 text-xs font-bold transition-colors ${
+                                activeTab === 'plan'
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                            }`}
+                        >
+                            Action Plan
+                            {activeTab === 'plan' && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-emerald-500" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('pending')}
+                            className={`relative pb-2 px-1 text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                                activeTab === 'pending'
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                            }`}
+                        >
+                            Pending Requests
+                            {pendingCount > 0 && (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    activeTab === 'pending'
+                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                                }`}>
+                                    {pendingCount}
+                                </span>
+                            )}
+                            {activeTab === 'pending' && (
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-amber-500" />
+                            )}
+                        </button>
                     </div>
-                    <div className="space-y-1">
-                        {cycle.tasks.map(task => (
-                            <div
-                                key={task.id}
-                                onClick={() => onTaskClick(task)}
-                                className={`flex items-center gap-3 py-2 px-2 rounded-lg transition-all border border-transparent ${task.completed
-                                    ? 'opacity-60 cursor-default'
-                                    : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-100 dark:hover:border-gray-600 active:scale-[0.99] group'
-                                    }`}
-                            >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'}`}>
-                                    {task.completed && <CheckCircle2 size={10} className="text-white" />}
+
+                    {/* ── Action Plan Tab ── */}
+                    {activeTab === 'plan' && (
+                        <div className="space-y-1">
+                            {approvedTasks.length === 0 ? (
+                                <p className="text-xs text-gray-400 italic text-center py-3">No approved activities yet.</p>
+                            ) : (
+                                approvedTasks.map(task => (
+                                    <div
+                                        key={task.id}
+                                        onClick={() => onTaskClick(task)}
+                                        className={`flex items-center gap-3 py-2 px-2 rounded-lg transition-all border border-transparent ${
+                                            task.completed
+                                                ? 'opacity-60 cursor-default'
+                                                : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-100 dark:hover:border-gray-600 active:scale-[0.99] group'
+                                        }`}
+                                    >
+                                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                                            task.completed
+                                                ? 'bg-green-500 border-green-500'
+                                                : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'
+                                        }`}>
+                                            {task.completed && <CheckCircle2 size={10} className="text-white" />}
+                                        </div>
+                                        <span className={`text-xs flex-1 truncate ${
+                                            task.completed
+                                                ? 'text-gray-400 line-through'
+                                                : 'text-gray-700 dark:text-gray-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400'
+                                        }`}>
+                                            {task.title}
+                                        </span>
+                                        {task.proofRequired && !task.completed && (
+                                            <Camera size={12} className="text-gray-400 group-hover:text-emerald-500 shrink-0" />
+                                        )}
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${
+                                            task.completed
+                                                ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
+                                        }`}>
+                                            {task.date}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── Pending Requests Tab ── */}
+                    {activeTab === 'pending' && (
+                        <div className="space-y-1.5">
+                            {pendingItems.length === 0 ? (
+                                <div className="text-center py-5">
+                                    <p className="text-xs text-gray-400 italic">No pending requests for this cycle.</p>
+                                    <p className="text-[10px] text-gray-400 mt-1">Use "Request Inputs / Funds" to submit activities.</p>
                                 </div>
-                                <span className={`text-xs flex-1 truncate ${task.completed ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400'}`}>
-                                    {task.title}
-                                </span>
-                                {task.proofRequired && !task.completed && (
-                                    <Camera size={12} className="text-gray-400 group-hover:text-emerald-500 shrink-0" />
-                                )}
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${task.completed
-                                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
-                                    }`}>
-                                    {task.date}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                            ) : (
+                                pendingItems.map((item, idx) => (
+                                    <div
+                                        key={`${item.id}-${idx}`}
+                                        className="flex items-center gap-3 py-2 px-2 rounded-lg border border-amber-100 dark:border-amber-900/20 bg-amber-50/50 dark:bg-amber-900/5"
+                                    >
+                                        {/* No checkbox — can't execute yet */}
+                                        <div className="w-4 h-4 rounded border border-dashed border-amber-300 dark:border-amber-700 shrink-0" />
+
+                                        <span className="text-xs flex-1 truncate text-gray-700 dark:text-gray-300">
+                                            {item.activityName}
+                                        </span>
+
+                                        {/* Estimated cost */}
+                                        <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap font-mono">
+                                            {fmtRwf(item.estimatedCostRwf)}
+                                        </span>
+
+                                        {/* Status badge */}
+                                        <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 whitespace-nowrap shrink-0">
+                                            <Clock size={8} />
+                                            Pending PM
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Footer Action */}
-            <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="px-4 pb-4 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                {/* Activity Log link */}
+                <button
+                    onClick={onViewLog}
+                    className="w-full flex items-center justify-center gap-1.5 text-[11px] font-semibold text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-1"
+                >
+                    <ScrollText size={12} />
+                    View Activity Log
+                    <ChevronRight size={11} />
+                </button>
+
+                {/* Request button */}
                 <button
                     onClick={onRequestInput}
                     className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
@@ -312,61 +521,8 @@ const CycleCard = ({ cycle, onRequestInput, onTaskClick }: { cycle: CropCycle; o
     );
 };
 
-const RequisitionModal = ({ cycle, onClose, onSubmit }: { cycle: CropCycle; onClose: () => void; onSubmit: (e: React.FormEvent) => void }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/30">
-                <div>
-                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">Request Inputs</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">For {cycle.crop} ({cycle.variety})</p>
-                </div>
-                <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500">
-                    <X size={20} />
-                </button>
-            </div>
 
-            <form onSubmit={onSubmit} className="p-6 space-y-4">
-                <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
-                    <div className="grid grid-cols-2 gap-2">
-                        {['Fertilizer', 'Seeds', 'Labor', 'Chemicals'].map((cat) => (
-                            <label key={cat} className="flex items-center gap-2 p-3 border border-gray-200 dark:border-gray-600 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all group">
-                                <input type="radio" name="category" className="accent-emerald-600" />
-                                <span className="text-xs font-medium text-gray-700 dark:text-gray-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">{cat}</span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Quantity / Amount</label>
-                        <input type="text" placeholder="e.g. 50 kg" className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all" />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Required By</label>
-                        <input type="date" className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all" />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">Reason for Request</label>
-                    <textarea
-                        rows={3}
-                        placeholder="Why is this needed?"
-                        className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
-                    ></textarea>
-                </div>
-
-                <div className="pt-2">
-                    <button type="submit" className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/10 transition-transform active:scale-[0.98]">
-                        Submit Request
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-);
+// ─── Empty State ──────────────────────────────────────────────────────────────
 
 const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
