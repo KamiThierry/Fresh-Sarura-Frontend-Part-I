@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getForecasts, saveForecasts, YieldForecast } from '../../shared/data/mockForecasts';
 import {
     Calendar, Scale, Target,
     Leaf, CheckCircle2, History, AlertCircle
@@ -12,13 +13,14 @@ const YieldForecasting = () => {
         { id: 3, name: "Beans - Sector 4" }
     ];
 
-    // Mock Data for History
-    const [history, setHistory] = useState([
-        { id: 1, submitted: 'Oct 01', harvestDate: 'Oct 15', crop: 'Avocado', prediction: 4500, status: 'Verified', accuracy: 98, variance: 'High Match' },
-        { id: 2, submitted: 'Sep 24', harvestDate: 'Oct 01', crop: 'Chili', prediction: 3200, status: 'Verified', accuracy: 80, variance: '-20% Off' },
-        { id: 3, submitted: 'Sep 10', harvestDate: 'Sep 25', crop: 'Beans', prediction: 1200, status: 'Verified', accuracy: 95, variance: 'High Match' },
-        { id: 4, submitted: 'Oct 08', harvestDate: 'Oct 22', crop: 'Avocado', prediction: 4800, status: 'Pending', accuracy: null, variance: null },
-    ]);
+    const [history, setHistory] = useState<YieldForecast[]>([]);
+
+    useEffect(() => {
+        setHistory(getForecasts());
+        const handleStorage = () => setHistory(getForecasts());
+        window.addEventListener('forecastsChanged', handleStorage);
+        return () => window.removeEventListener('forecastsChanged', handleStorage);
+    }, []);
 
     // Form State
     const [selectedCycle, setSelectedCycle] = useState(ACTIVE_CYCLES[0].id);
@@ -31,18 +33,23 @@ const YieldForecasting = () => {
         e.preventDefault();
         const cropName = ACTIVE_CYCLES.find(c => c.id === Number(selectedCycle))?.name || 'Unknown';
 
-        const newForecast = {
+        const newForecast: YieldForecast = {
             id: Date.now(),
+            cycleId: Number(selectedCycle),
             submitted: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             harvestDate: new Date(harvestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             crop: cropName.split(' - ')[0],
             prediction: Number(quantity),
             status: 'Pending',
+            confidence,
+            notes,
             accuracy: null,
             variance: null
         };
 
-        setHistory([newForecast, ...history]);
+        const updated = [newForecast, ...history];
+        setHistory(updated);
+        saveForecasts(updated);
 
         // Reset Form
         setHarvestDate('');

@@ -11,6 +11,8 @@ import {
 import EvidenceViewModal from './EvidenceViewModal';
 import BudgetLedgerModal from './BudgetLedgerModal';
 import type { BudgetRequest } from '../../shared/types/activity';
+import { useEffect } from 'react';
+import { getForecasts, saveForecasts, YieldForecast } from '../../shared/data/mockForecasts';
 
 interface CropCycleDetailModalProps {
     isOpen: boolean;
@@ -40,17 +42,28 @@ const MOCK_BUDGET_REQUESTS: BudgetRequest[] = [
 ];
 
 const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycleDetailModalProps) => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'requests'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'requests' | 'forecasts'>('overview');
     const [isLedgerOpen, setIsLedgerOpen] = useState(false);
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [selectedEvidenceTask, setSelectedEvidenceTask] = useState<any>(null);
     const [budgetRequests, setBudgetRequests] = useState<BudgetRequest[]>(MOCK_BUDGET_REQUESTS);
+    const [forecasts, setForecasts] = useState<YieldForecast[]>([]);
+    const [replyText, setReplyText] = useState<{ [id: number]: string }>({});
     
     // New States for Financials Loop
     const [cycleStatus, setCycleStatus] = useState(cycle?.status || 'Active');
     const [isAdjustBudgetOpen, setIsAdjustBudgetOpen] = useState(false);
     const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
     const [selectedFieldReport, setSelectedFieldReport] = useState<any>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setForecasts(getForecasts());
+            const handleStorage = () => setForecasts(getForecasts());
+            window.addEventListener('forecastsChanged', handleStorage);
+            return () => window.removeEventListener('forecastsChanged', handleStorage);
+        }
+    }, [isOpen]);
 
     if (!isOpen || !cycle) return null;
 
@@ -169,7 +182,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycl
                 {/* Tabs */}
                 <div className="px-6 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
                     <div className="flex gap-6">
-                        {(['overview', 'financials', 'requests'] as const).map((tab) => (
+                        {(['overview', 'financials', 'requests', 'forecasts'] as const).map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -178,7 +191,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycl
                                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                             >
-                                {tab === 'requests' ? 'Budget Requests' : tab}
+                                {tab === 'requests' ? 'Budget Requests' : tab === 'forecasts' ? 'Yield Forecasts' : tab}
                             </button>
                         ))}
                     </div>
@@ -519,7 +532,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycl
                                                         )}
                                                     </div>
 
-                                                    {isPending && (
+                                                    {isPending && cycleStatus !== 'Completed' && (
                                                         <div className="flex gap-2">
                                                             <button
                                                                 onClick={() => handleRejectRequest(req.id)}
@@ -550,6 +563,93 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycl
                                             </div>
                                         );
                                     })}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'forecasts' && (
+                        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp size={18} className="text-gray-500" />
+                                    <h3 className="font-bold text-gray-900 dark:text-white">Yield Forecasts</h3>
+                                </div>
+                            </div>
+                            
+                            {forecasts.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <p className="font-semibold text-gray-700 dark:text-gray-300">No Forecasts Submitted</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {forecasts.filter(f => cycle?.id === undefined || f.cycleId === cycle.id || (cycle.cycleId && cycle.cycleId.includes(f.cycleId.toString()))).map(f => (
+                                        <div key={f.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden p-5">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${f.status === 'Verified' ? 'bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-yellow-50 text-yellow-600 border border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400'}`}>
+                                                        {f.status}
+                                                    </span>
+                                                    <p className="text-xs text-gray-500 mt-2">Submitted: {f.submitted}</p>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Expected Harvest</p>
+                                                    <p className="font-medium text-gray-800 dark:text-gray-200">{f.harvestDate}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Expected Quantity</p>
+                                                    <p className="font-mono text-gray-800 dark:text-gray-200">{f.prediction.toLocaleString()} kg</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-400">Confidence</p>
+                                                    <p className="font-medium text-gray-800 dark:text-gray-200">{f.confidence}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <p className="text-xs text-gray-400 mb-1">Notes</p>
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-600/50">
+                                                    {f.notes || "No notes provided."}
+                                                </p>
+                                            </div>
+                                            
+                                            {f.status === 'Pending' && cycleStatus !== 'Completed' && (
+                                                <div className="pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                                                    <div>
+                                                        <label className="text-xs font-bold text-gray-600 dark:text-gray-400">Reply Note (Optional)</label>
+                                                        <input 
+                                                            type="text"
+                                                            placeholder="e.g. Acknowledged. Logistics informed."
+                                                            value={replyText[f.id] || ''}
+                                                            onChange={(e) => setReplyText({ ...replyText, [f.id]: e.target.value })}
+                                                            className="w-full mt-1 px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none text-gray-900 dark:text-white"
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-end">
+                                                        <button 
+                                                            onClick={() => {
+                                                                const updated = forecasts.map(pf => pf.id === f.id ? { ...pf, status: 'Verified' as const, pmReply: replyText[f.id] } : pf);
+                                                                setForecasts(updated);
+                                                                saveForecasts(updated);
+                                                            }}
+                                                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                                                        >
+                                                            <CheckCircle2 size={14} /> Mark as Verified
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {f.status === 'Verified' && f.pmReply && (
+                                                <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                                                    <p className="text-xs text-gray-400 mb-1">Your Reply</p>
+                                                    <p className="text-sm text-emerald-800 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                                                        {f.pmReply}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -626,6 +726,7 @@ const CropCycleDetailModal = ({ isOpen, onClose, cycle, onCloseCycle }: CropCycl
                 isOpen={!!selectedFieldReport}
                 onClose={() => setSelectedFieldReport(null)}
                 report={selectedFieldReport}
+                isReadOnly={cycleStatus === 'Completed'}
                 onFlag={(reason) => {
                     setLedgerDataState(prev => ({
                         ...prev,
@@ -826,7 +927,7 @@ function ConfirmCloseModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; on
     );
 }
 
-function FieldReportDetailsModal({ isOpen, onClose, report, onFlag }: { isOpen: boolean; onClose: () => void; report: any; onFlag?: (reason: string) => void }) {
+function FieldReportDetailsModal({ isOpen, onClose, report, onFlag, isReadOnly }: { isOpen: boolean; onClose: () => void; report: any; onFlag?: (reason: string) => void; isReadOnly?: boolean }) {
     const [isFlagging, setIsFlagging] = useState(false);
     const [flagReason, setFlagReason] = useState('');
 
@@ -904,6 +1005,7 @@ function FieldReportDetailsModal({ isOpen, onClose, report, onFlag }: { isOpen: 
                     </div>
 
                     {/* Action Bar */}
+                    {!isReadOnly && (
                     <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                         {report.status === 'Flagged' ? (
                             <div className="p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl text-amber-800 dark:text-amber-300 text-sm font-semibold flex items-center justify-center gap-2">
@@ -951,6 +1053,7 @@ function FieldReportDetailsModal({ isOpen, onClose, report, onFlag }: { isOpen: 
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
             </div>
         </div>,

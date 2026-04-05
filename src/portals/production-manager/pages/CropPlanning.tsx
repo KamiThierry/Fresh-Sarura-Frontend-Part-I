@@ -163,7 +163,7 @@ const CropPlanning = () => {
                     {activeCycles.map((cycle) => {
                         const varianceVal = cycle.budget.spent - cycle.budget.total;
                         const isOverWeb = varianceVal > 0;
-                        const progress = calculateProgress(cycle.budget.spent, cycle.budget.total);
+                        const progress = cycle.status === 'Completed' || cycle.status === 'Harvesting' ? 100 : calculateProgress(cycle.budget.spent, cycle.budget.total);
 
                         return (
                             <div key={cycle.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group">
@@ -209,7 +209,11 @@ const CropPlanning = () => {
                                     {/* Progress Visual */}
                                     <div className="relative h-2.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                         <div
-                                            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${isOverWeb ? 'bg-red-500' : 'bg-green-500'}`}
+                                            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${
+                                                cycle.status === 'Harvesting' ? 'bg-amber-500' :
+                                                cycle.status === 'Completed' ? 'bg-gray-400' :
+                                                isOverWeb ? 'bg-red-500' : 'bg-green-500'
+                                            }`}
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>

@@ -16,6 +16,7 @@ interface CropCycle {
     variety: string;
     season: string;
     stage: 'Vegetative' | 'Flowering' | 'Fruiting' | 'Harvest';
+    status?: 'Active' | 'Harvesting' | 'Completed';
     budgetUsed: number;
     targetYield: string;
     nextMilestone: string;
@@ -30,6 +31,7 @@ const MOCK_CYCLES: CropCycle[] = [
         variety: 'Hass',
         season: 'Season A 2026',
         stage: 'Fruiting',
+        status: 'Active',
         budgetUsed: 65,
         targetYield: '5,000 kg',
         nextMilestone: 'Fertilizer Application (Due Oct 15)',
@@ -108,6 +110,7 @@ const MOCK_CYCLES: CropCycle[] = [
         variety: 'Bird Eye',
         season: 'Season B 2026',
         stage: 'Flowering',
+        status: 'Completed',
         budgetUsed: 92,
         targetYield: '1,200 kg',
         nextMilestone: 'Pest Control Spray',
@@ -336,8 +339,12 @@ const CycleCard = ({ cycle, extraTasks, pendingRequests, onRequestInput, onTaskC
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{cycle.crop}</h3>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 uppercase tracking-wide">
-                            {cycle.stage}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                            cycle.status === 'Harvesting' ? 'bg-amber-100 text-amber-700 animate-pulse' :
+                            cycle.status === 'Completed' ? 'bg-gray-100 text-gray-500' :
+                            'bg-blue-100 text-blue-700'
+                        }`}>
+                            {cycle.status === 'Completed' ? 'Closed' : cycle.status === 'Harvesting' ? 'Harvesting' : cycle.stage}
                         </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -439,9 +446,11 @@ const CycleCard = ({ cycle, extraTasks, pendingRequests, onRequestInput, onTaskC
                                 approvedTasks.map(task => (
                                     <div
                                         key={task.id}
-                                        onClick={() => onTaskClick(task)}
+                                        onClick={() => {
+                                            if (cycle.status !== 'Completed') onTaskClick(task);
+                                        }}
                                         className={`flex items-center gap-3 py-2 px-2 rounded-lg transition-all border border-transparent ${
-                                            task.completed
+                                            task.completed || cycle.status === 'Completed'
                                                 ? 'opacity-60 cursor-default'
                                                 : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-100 dark:hover:border-gray-600 active:scale-[0.99] group'
                                         }`}
@@ -449,24 +458,24 @@ const CycleCard = ({ cycle, extraTasks, pendingRequests, onRequestInput, onTaskC
                                         <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
                                             task.completed
                                                 ? 'bg-green-500 border-green-500'
-                                                : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'
+                                                : cycle.status === 'Completed' ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800' : 'border-gray-300 dark:border-gray-600 group-hover:border-emerald-500'
                                         }`}>
                                             {task.completed && <CheckCircle2 size={10} className="text-white" />}
                                         </div>
                                         <span className={`text-xs flex-1 truncate ${
                                             task.completed
                                                 ? 'text-gray-400 line-through'
-                                                : 'text-gray-700 dark:text-gray-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400'
+                                                : cycle.status === 'Completed' ? 'text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400'
                                         }`}>
                                             {task.title}
                                         </span>
-                                        {task.proofRequired && !task.completed && (
+                                        {task.proofRequired && !task.completed && cycle.status !== 'Completed' && (
                                             <Camera size={12} className="text-gray-400 group-hover:text-emerald-500 shrink-0" />
                                         )}
                                         <span className={`text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${
                                             task.completed
                                                 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
+                                                : cycle.status === 'Completed' ? 'bg-gray-100 dark:bg-gray-700 text-gray-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 group-hover:text-emerald-700'
                                         }`}>
                                             {task.date}
                                         </span>
@@ -528,13 +537,15 @@ const CycleCard = ({ cycle, extraTasks, pendingRequests, onRequestInput, onTaskC
                 </button>
 
                 {/* Request button */}
-                <button
-                    onClick={onRequestInput}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                    <Plus size={18} />
-                    Request Inputs / Funds
-                </button>
+                {cycle.status !== 'Completed' && (
+                    <button
+                        onClick={onRequestInput}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <Plus size={18} />
+                        Request Inputs / Funds
+                    </button>
+                )}
             </div>
         </div>
     );

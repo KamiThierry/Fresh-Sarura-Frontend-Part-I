@@ -250,7 +250,7 @@ const FarmDashboard = () => {
                 onSubmitConfirm={(cropText) => {
                     const mappedCrop = cropText.split(' ')[0];
                     setActiveCycles(prev => prev.map(c => c.crop === mappedCrop ? { ...c, status: 'Harvesting' } : c));
-                    alert(`SYSTEM: Notification dispatched to PM => "Harvesting initiated for ${cropText} by FM."`);
+                    alert(`SYSTEM: Notification dispatched to PM => "Harvesting initiated for ${cropText} by Thierry (FM)."`);
                 }}
             />
             <RequestSuppliesModal
